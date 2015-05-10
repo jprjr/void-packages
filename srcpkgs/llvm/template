@@ -110,10 +110,6 @@ do_install() {
 		done
 	fi
 
-	# Remove llvm-config-host in cross builds.
-	if [ "$CROSS_BUILD" ]; then
-		rm -f ${DESTDIR}/usr/bin/llvm-config-host
-	fi
 }
 
 clang-analyzer_package() {

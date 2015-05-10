@@ -1,0 +1,115 @@
+# Template file for 'cross-x64_64-linux-musl-llvm'
+
+_llvm_version=3.6.0
+
+_triplet=x86_64-linux-musl
+_sysroot="/usr/${_triplet}"
+
+pkgname=cross-${_triplet}-llvm
+version=${_llvm_version}
+
+wrksrc="llvm-${version}.src"
+revision=1
+configure_args="--target=${_triplet} --with-default-sysroot=${_sysroot}
+ --prefix=/usr --sysconfdir=/etc
+ --disable-expensive-checks --disable-debug-runtime
+ --enable-bindings=none --enable-optimized --enable-shared --enable-libffi
+ --enable-llvmc-dynamic --disable-assertions --enable-keep-symbols
+ --enable-experimental-targets=R600"
+short_desc="Cross LLVM for x86_64 with musl"
+maintainer="John Regan <john@jrjrtech.com>"
+homepage="http://www.llvm.org"
+license="BSD"
+
+distfiles="
+ http://www.llvm.org/releases/${version}/llvm-${version}.src.tar.xz
+ http://www.llvm.org/releases/${version}/lldb-${version}.src.tar.xz
+ http://www.llvm.org/releases/${version}/cfe-${version}.src.tar.xz
+ http://www.llvm.org/releases/${version}/compiler-rt-${version}.src.tar.xz"
+checksum="
+ b39a69e501b49e8f73ff75c9ad72313681ee58d6f430bfad4d81846fe92eb9ce
+ 2b1ad1d42c4ea3fa2f9dd6db7c522d86e80891659b24dbb3d0d80386d8eaf0b2
+ be0e69378119fe26f0f2f74cffe82b7c26da840c9733fe522ed3c1b66b11082d
+ 7f49fb79e5adcdce7dddaf973f1db130228dfb19e37a99a7f5365a6948b26b11"
+
+makedepends="groff perl python-devel zlib-devel libffi-devel libedit-devel swig"
+lib32disabled=yes
+nocross=yes
+nodebug=yes
+depends="cross-${_triplet}-libc"
+
+post_extract() {
+	# patches
+	cd ${XBPS_BUILDDIR}/llvm-${version}.src
+	for i in ${FILESDIR}/patches/llvm/llvm-*.patch; do
+		patch -sNp0 -i ${i}
+	done
+
+	cd ${XBPS_BUILDDIR}/compiler-rt-${version}.src
+	for i in ${FILESDIR}/patches/compiler-rt/compiler-rt-*.patch; do
+		patch -sNp0 -i ${i}
+	done
+	patch -sNp0 -i "${FILESDIR}/patches/compiler-rt/compiler-rt_musl_001-disable-sanitizers.patch"
+
+	cd ${XBPS_BUILDDIR}/cfe-${version}.src
+	for i in ${FILESDIR}/patches/cfe/cfe-*.patch; do
+		patch -sNp0 -i ${i}
+	done
+
+	cd ${XBPS_BUILDDIR}/lldb-${version}.src
+	for i in ${FILESDIR}/patches/lldb/*.patch; do
+		patch -sNp0 -i ${i}
+	done
+
+	# Move clang files into the llvm source.
+	if [ -d ${XBPS_BUILDDIR}/cfe-${version}.src ]; then
+		mv ${XBPS_BUILDDIR}/cfe-${version}.src ${wrksrc}/tools/clang
+	fi
+	# Move lldb files into the llvm source.
+	if [ -d ${XBPS_BUILDDIR}/lldb-${version}.src ]; then
+		mv ${XBPS_BUILDDIR}/lldb-${version}.src ${wrksrc}/tools/lldb
+	fi
+	# Move compiler-rt files into the llvm source.
+	if [ -d ${XBPS_BUILDDIR}/compiler-rt-${version}.src ]; then
+		mv ${XBPS_BUILDDIR}/compiler-rt-${version}.src ${wrksrc}/projects/compiler-rt
+	fi
+}
+
+do_configure() {
+	unset CC CXX CPP AR AS RANLIB CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+
+	# Fix installation directories, ./configure doesn't seem to set them right
+	sed -i -e 's:\$(PROJ_prefix)/etc/llvm:/etc/cross-x86_64-musl-llvm:' \
+		-e 's:\$(PROJ_prefix)/docs/llvm:$(PROJ_prefix)/share/doc/cross-x86_64-musl-llvm:' \
+		Makefile.config.in
+
+	mkdir build
+	cd build
+	../configure ${configure_args}
+}
+
+do_build() {
+	unset CC CXX CPP AR AS RANLIB CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+
+    for f in include lib libexec bin sbin; do
+        if [ ! -d ${_sysroot}/usr/${f} ]; then
+            mkdir -p ${_sysroot}/usr/${f}
+        fi
+        if [ ! -h ${_sysroot}/${f} ]; then
+            ln -sfr ${_sysroot}/usr/${f} ${_sysroot}/${f}
+        fi
+    done
+
+	cd build
+	make REQUIRES_RTTI=1 ${makejobs}
+}
+
+do_install() {
+	cd build
+	make DESTDIR=${DESTDIR} install
+
+	# Get rid of example Hello transformation
+	rm ${DESTDIR}/${_sysroot}usr/lib/*LLVMHello.*
+
+}
+
