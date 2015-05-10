@@ -106,10 +106,9 @@ do_build() {
 
 do_install() {
 	cd build
-	make DESTDIR=${DESTDIR} install
+	make DESTDIR=${DESTDIR}${_sysroot} install
 
-	# Get rid of example Hello transformation
-	rm ${DESTDIR}/${_sysroot}usr/lib/*LLVMHello.*
-
+    # fix binaries
+    mv ${DESTDIR}${_sysroot}/usr/bin/* ${DESTDIR}/usr/bin/
 }
 
