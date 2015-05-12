@@ -126,6 +126,9 @@ clang_wrapper() {
     #    clang_opts+=" -cxx-isystem /usr/include/c++/4.9.2 -cxx-isystem /usr/include/c++/4.9.2/${XBPS_CROSS_TRIPLET}"
     #fi
     clang_opts=" --gcc-toolchain=/usr/lib/gcc/${XBPS_CROSS_TRIPLET}/4.9.2"
+    clang_opts+=" -v"
+    clang_opts+=" -nostdinc"
+    clang_opts+=" -Wl,-L/usr/lib/gcc/${XBPS_CROSS_TRIPLET}/4.9.2"
     clang_opts+=" --sysroot=${XBPS_CROSS_BASE}"
     clang_opts+=" -isysroot ${XBPS_CROSS_BASE}"
     clang_opts+=" -isystem ${XBPS_CROSS_BASE}/usr/include"
@@ -136,7 +139,6 @@ clang_wrapper() {
 
 	cat >>${XBPS_WRAPPERDIR}/${XBPS_CROSS_TRIPLET}-${wrapper}<<_EOF
 #!/bin/sh
-export LDFLAGS="-L/usr/lib/gcc/${XBPS_CROSS_TRIPLET}/4.9.2 -L/usr/${XBPS_CROSS_TRIPLET}/usr/lib"
 exec /usr/bin/${wrapper} ${clang_opts} "\$@"
 _EOF
 	chmod 755 ${XBPS_WRAPPERDIR}/${XBPS_CROSS_TRIPLET}-${wrapper}
