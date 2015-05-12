@@ -3,7 +3,8 @@ pkgname=libclc-git
 version=20150408
 revision=2
 build_style=configure
-hostmakedepends="git python libffi-devel libedit-devel zlib-devel llvm clang ncurses-devel"
+hostmakedepends="git python llvm clang"
+makedepends="clang llvm libffi-devel libedit-devel zlib-devel ncurses-devel"
 short_desc="Open implementation of the OpenCL C programming language"
 maintainer="John Galt <johngaltfirstrun@gmail.com>"
 license="BSD/MIT"
@@ -11,6 +12,8 @@ homepage="http://libclc.llvm.org"
 provides="libclc-${version}_${revision}"
 replaces="libclc>=0"
 noarch=yes
+
+make_build_args+=" VERBOSE=1"
 
 do_fetch() {
 	local _githash="69ebc81135ee35aab0154a5eed057830f962ab00"
