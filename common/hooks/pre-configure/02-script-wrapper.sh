@@ -128,6 +128,7 @@ clang_wrapper() {
     clang_opts=" --gcc-toolchain=/usr/lib/gcc/${XBPS_CROSS_TRIPLET}/4.9.2"
     clang_opts+=" -v"
     clang_opts+=" -nostdinc"
+    clang_opts+=" -nostdinc++"
     clang_opts+=" -Wl,-L/usr/lib/gcc/${XBPS_CROSS_TRIPLET}/4.9.2"
     clang_opts+=" --sysroot=${XBPS_CROSS_BASE}"
     clang_opts+=" -isysroot ${XBPS_CROSS_BASE}"
