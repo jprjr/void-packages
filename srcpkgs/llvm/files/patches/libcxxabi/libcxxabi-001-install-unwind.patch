@@ -1,0 +1,11 @@
+diff --git CMakeLists.txt CMakeLists.txt
+index 2ecb7e9..8ed0638 100644
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -283,3 +283,6 @@ if(NOT LIBCXXABI_ENABLE_SHARED)
+ else()
+   add_subdirectory(test)
+ endif()
++
++install(FILES include/libunwind.h include/unwind.h DESTINATION include/)
++

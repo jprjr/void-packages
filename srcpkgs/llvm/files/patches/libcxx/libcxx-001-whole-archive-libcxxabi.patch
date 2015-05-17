@@ -1,0 +1,17 @@
+diff --git lib/CMakeLists.txt lib/CMakeLists.txt
+index 02c80d9..06f507d 100644
+--- lib/CMakeLists.txt
++++ lib/CMakeLists.txt
+@@ -39,7 +39,11 @@ if (DEFINED LIBCXX_CXX_ABI_DEPS)
+ endif()
+ 
+ # Generate library list.
+-set(libraries ${LIBCXX_CXX_ABI_LIBRARY})
++if (LIBCXX_LIBCXXABI_WHOLE_ARCHIVE)
++  set(libraries -Wl,--whole-archive ${LIBCXX_CXX_ABI_LIBRARY} -Wl,--no-wholearchive)
++else()
++  set(libraries ${LIBCXX_CXX_ABI_LIBRARY})
++endif()
+ append_if(libraries LIBCXX_HAS_PTHREAD_LIB pthread)
+ append_if(libraries LIBCXX_HAS_C_LIB c)
+ append_if(libraries LIBCXX_HAS_M_LIB m)
