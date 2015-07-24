@@ -1,5 +1,5 @@
 diff --git lib/sanitizer_common/sanitizer_platform_limits_posix.cc lib/sanitizer_common/sanitizer_platform_limits_posix.cc
-index 9bc7bf0..71d2f73 100644
+index 9bc7bf0..6d46a66 100644
 --- lib/sanitizer_common/sanitizer_platform_limits_posix.cc
 +++ lib/sanitizer_common/sanitizer_platform_limits_posix.cc
 @@ -51,6 +51,7 @@
@@ -204,7 +204,18 @@ index 9bc7bf0..71d2f73 100644
  
  CHECK_TYPE_SIZE(shmid_ds);
  CHECK_SIZE_AND_OFFSET(shmid_ds, shm_perm);
-@@ -1146,6 +1186,7 @@ CHECK_SIZE_AND_OFFSET(group, gr_gid);
+@@ -1109,8 +1149,10 @@ CHECK_SIZE_AND_OFFSET(ifaddrs, ifa_data);
+ #endif
+ 
+ #if SANITIZER_LINUX
++#ifndef MUSL_NETWORKING_STACK
+ COMPILER_CHECK(sizeof(__sanitizer_mallinfo) == sizeof(struct mallinfo));
+ #endif
++#endif
+ 
+ #if !SANITIZER_ANDROID
+ CHECK_TYPE_SIZE(timeb);
+@@ -1146,6 +1188,7 @@ CHECK_SIZE_AND_OFFSET(group, gr_gid);
  CHECK_SIZE_AND_OFFSET(group, gr_mem);
  
  #if SANITIZER_LINUX && !SANITIZER_ANDROID
@@ -212,7 +223,7 @@ index 9bc7bf0..71d2f73 100644
  CHECK_TYPE_SIZE(XDR);
  CHECK_SIZE_AND_OFFSET(XDR, x_op);
  CHECK_SIZE_AND_OFFSET(XDR, x_ops);
-@@ -1157,8 +1198,11 @@ COMPILER_CHECK(__sanitizer_XDR_ENCODE == XDR_ENCODE);
+@@ -1157,8 +1200,11 @@ COMPILER_CHECK(__sanitizer_XDR_ENCODE == XDR_ENCODE);
  COMPILER_CHECK(__sanitizer_XDR_DECODE == XDR_DECODE);
  COMPILER_CHECK(__sanitizer_XDR_FREE == XDR_FREE);
  #endif
@@ -224,7 +235,7 @@ index 9bc7bf0..71d2f73 100644
  COMPILER_CHECK(sizeof(__sanitizer_FILE) <= sizeof(FILE));
  CHECK_SIZE_AND_OFFSET(FILE, _flags);
  CHECK_SIZE_AND_OFFSET(FILE, _IO_read_ptr);
-@@ -1176,6 +1220,7 @@ CHECK_SIZE_AND_OFFSET(FILE, _markers);
+@@ -1176,6 +1222,7 @@ CHECK_SIZE_AND_OFFSET(FILE, _markers);
  CHECK_SIZE_AND_OFFSET(FILE, _chain);
  CHECK_SIZE_AND_OFFSET(FILE, _fileno);
  #endif
