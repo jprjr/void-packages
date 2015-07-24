@@ -1,0 +1,13 @@
+diff --git lib/sanitizer_common/sanitizer_linux_libcdep.cc lib/sanitizer_common/sanitizer_linux_libcdep.cc
+index 4e09081..2d3f8fc 100644
+--- lib/sanitizer_common/sanitizer_linux_libcdep.cc
++++ lib/sanitizer_common/sanitizer_linux_libcdep.cc
+@@ -25,7 +25,7 @@
+ #include "sanitizer_atomic.h"
+ #include "sanitizer_symbolizer.h"
+ 
+-#if SANITIZER_ANDROID || SANITIZER_FREEBSD
++#if SANITIZER_ANDROID || SANITIZER_FREEBSD || SANITIZER_LINUX
+ #include <dlfcn.h>  // for dlsym()
+ #endif
+ 

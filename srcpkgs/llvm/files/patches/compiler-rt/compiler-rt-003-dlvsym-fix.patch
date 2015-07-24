@@ -1,0 +1,26 @@
+diff --git lib/interception/interception_linux.cc lib/interception/interception_linux.cc
+index 6e908ac..8d7b0e4 100644
+--- lib/interception/interception_linux.cc
++++ lib/interception/interception_linux.cc
+@@ -24,7 +24,7 @@ bool GetRealFunctionAddress(const char *func_name, uptr *func_addr,
+   return real == wrapper;
+ }
+ 
+-#if !defined(__ANDROID__)  // android does not have dlvsym
++#if !defined(NO_HAVE_DLVSYM) && !defined(__ANDROID__)  // android does not have dlvsym
+ void *GetFuncAddrVer(const char *func_name, const char *ver) {
+   return dlvsym(RTLD_NEXT, func_name, ver);
+ }
+diff --git lib/interception/interception_linux.h lib/interception/interception_linux.h
+index d3f774b..23bfba8 100644
+--- lib/interception/interception_linux.h
++++ lib/interception/interception_linux.h
+@@ -34,7 +34,7 @@ void *GetFuncAddrVer(const char *func_name, const char *ver);
+       (::__interception::uptr) & (func),                                   \
+       (::__interception::uptr) & WRAP(func))
+ 
+-#if !defined(__ANDROID__)  // android does not have dlvsym
++#if !defined(NO_HAVE_DLVSYM) && !defined(__ANDROID__)  // android does not have dlvsym
+ # define INTERCEPT_FUNCTION_VER_LINUX_OR_FREEBSD(func, symver) \
+      ::__interception::real_##func = (func##_f)(unsigned long) \
+          ::__interception::GetFuncAddrVer(#func, symver)

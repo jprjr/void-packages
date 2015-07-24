@@ -16,47 +16,67 @@ distfiles="
  http://www.llvm.org/releases/${version}/llvm-${version}.src.tar.xz
  http://www.llvm.org/releases/${version}/lldb-${version}.src.tar.xz
  http://www.llvm.org/releases/${version}/cfe-${version}.src.tar.xz
- http://www.llvm.org/releases/${version}/compiler-rt-${version}.src.tar.xz"
+ http://www.llvm.org/releases/${version}/compiler-rt-${version}.src.tar.xz
+ http://www.llvm.org/releases/${version}/libcxx-${version}.src.tar.xz
+ http://www.llvm.org/releases/${version}/libcxxabi-${version}.src.tar.xz
+ http://www.llvm.org/releases/${version}/lld-${version}.src.tar.xz"
 checksum="
  f60dc158bfda6822de167e87275848969f0558b3134892ff54fced87e4667b94
  940dc96b64919b7dbf32c37e0e1d1fc88cc18e1d4b3acf1e7dfe5a46eb6523a9
  ae9180466a23acb426d12444d866b266ff2289b266064d362462e44f8d4699f3
- 0f2ff37d80a64575fecd8cf0d5c50f7ac1f837ddf700d1855412bb7547431d87"
+ 0f2ff37d80a64575fecd8cf0d5c50f7ac1f837ddf700d1855412bb7547431d87
+ 52f3d452f48209c9df1792158fdbd7f3e98ed9bca8ebb51fcd524f67437c8b81
+ 6fb48ce5a514686b9b75e73e59869f782ed374a86d71be8423372e4b3329b09b
+ 43f553c115563600577764262f1f2fac3740f0c639750f81e125963c90030b33"
 
 # XXX Investigate ocaml bindings.
-hostmakedepends="groff perl python zlib-devel libffi-devel swig"
+hostmakedepends="cmake groff perl python zlib-devel libffi-devel swig"
 makedepends="python-devel zlib-devel libffi-devel libedit-devel"
 
 subpackages="clang clang-analyzer libllvm3.6 llvm-docs"
+subpackages+=" libc++ libc++-devel"
+subpackages+=" libc++abi libc++abi-devel"
 if [ -z "$CROSS_BUILD" ]; then
 	# XXX fails to cross compile due to python
 	subpackages+=" lldb lldb-devel"
 fi
 
+_my_cflags=""
+case "${XBPS_TARGET_MACHINE}" in
+  *-musl) _my_cflags="-DNO_HAVE_OBSTACK -DNO_HAVE_DLVSYM -DNO_HAVE_USTAT -DMUSL_NETWORKING_STACK -DNO_HAVE_ALTDIRFUNC" ;;
+esac
+
 post_extract() {
 	# patches
 	cd ${XBPS_BUILDDIR}/llvm-${version}.src
-	for i in ${FILESDIR}/patches/llvm/llvm-*.patch; do
+	for i in ${FILESDIR}/patches/llvm/*.patch; do
 		patch -sNp0 -i ${i}
 	done
 
 	cd ${XBPS_BUILDDIR}/compiler-rt-${version}.src
-	for i in ${FILESDIR}/patches/compiler-rt/compiler-rt-*.patch; do
+	for i in ${FILESDIR}/patches/compiler-rt/*.patch; do
 		patch -sNp0 -i ${i}
 	done
-	case "$XBPS_TARGET_MACHINE" in
-		*-musl) patch -sNp0 -i "${FILESDIR}/patches/compiler-rt/compiler-rt_musl_001-disable-sanitizers.patch" ;;
-	esac
 
 	cd ${XBPS_BUILDDIR}/cfe-${version}.src
-	for i in ${FILESDIR}/patches/cfe/cfe-*.patch; do
+	for i in ${FILESDIR}/patches/cfe/*.patch; do
 		patch -sNp0 -i ${i}
 	done
 
-	cd ${XBPS_BUILDDIR}/lldb-${version}.src
-	for i in ${FILESDIR}/patches/lldb/*.patch; do
+	#cd ${XBPS_BUILDDIR}/lldb-${version}.src
+	#for i in ${FILESDIR}/patches/lldb/*.patch; do
+	#	patch -sNp0 -i ${i}
+	#done
+
+	cd ${XBPS_BUILDDIR}/libcxx-${version}.src
+	for i in ${FILESDIR}/patches/libcxx/*.patch; do
 		patch -sNp0 -i ${i}
 	done
+
+	#cd ${XBPS_BUILDDIR}/libcxxabi-${version}.src
+	#for i in ${FILESDIR}/patches/libcxxabi/*.patch; do
+	#	patch -sNp0 -i ${i}
+	#done
 
 	# Move clang files into the llvm source.
 	if [ -d ${XBPS_BUILDDIR}/cfe-${version}.src ]; then
@@ -66,33 +86,129 @@ post_extract() {
 	if [ -z "$CROSS_BUILD" -a -d ${XBPS_BUILDDIR}/lldb-${version}.src ]; then
 		mv ${XBPS_BUILDDIR}/lldb-${version}.src ${wrksrc}/tools/lldb
 	fi
+	# Move lld files into the llvm source.
+	if [ -z "$CROSS_BUILD" -a -d ${XBPS_BUILDDIR}/lld-${version}.src ]; then
+		mv ${XBPS_BUILDDIR}/lld-${version}.src ${wrksrc}/tools/lld
+	fi
 	# Move compiler-rt files into the llvm source.
 	if [ -d ${XBPS_BUILDDIR}/compiler-rt-${version}.src ]; then
 		mv ${XBPS_BUILDDIR}/compiler-rt-${version}.src ${wrksrc}/projects/compiler-rt
 	fi
+	# Move libcxx files into the llvm source.
+	if [ -d ${XBPS_BUILDDIR}/libcxx-${version}.src ]; then
+		mv ${XBPS_BUILDDIR}/libcxx-${version}.src ${wrksrc}/projects/libcxx
+	fi
+	# Move libcxxabi files into the llvm source.
+	if [ -d ${XBPS_BUILDDIR}/libcxxabi-${version}.src ]; then
+		mv ${XBPS_BUILDDIR}/libcxxabi-${version}.src ${wrksrc}/projects/libcxxabi
+	fi
+
+	# move wrksrc to a subdir
+        mkdir ${XBPS_BUILDDIR}/llvm
+	mv ${wrksrc}/* ${XBPS_BUILDDIR}/llvm/
+	mv ${XBPS_BUILDDIR}/llvm ${wrksrc}/
 }
 
-do_configure() {
+_build_stage0() {
+	[ -e ${wrksrc}/.stage0_done ] && return 0
+	mkdir ${wrksrc}/build-stage0
+	mkdir ${wrksrc}/install-stage0
+
+	cd ${wrksrc}/build-stage0
+	CFLAGS="${_my_cflags}" \
+	CXXFLAGS="${_my_cflags}" \
+	cmake ../llvm \
+		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
+		-DBUILD_SHARED_LIBS=on \
+		-DLLVM_TARGETS_TO_BUILD=host \
+		-DLLVM_INCLUDE_TOOLS=bootstrap-only \
+		-DLLVM_EXTERNAL_LIBCXX_BUILD=off \
+		-DLLVM_EXTERNAL_LIBCXXABI_BUILD=off \
+		-DLLVM_EXTERNAL_COMPILER_RT_BUILD=off \
+		-DLLVM_REQUIRES_RTTI=on \
+		-DLLVM_ENABLE_FFI=on \
+		-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=R600 \
+		-DCMAKE_INSTALL_PREFIX=${wrksrc}/install-stage0 \
+		-DCMAKE_BUILD_TYPE=Release
+	make ${makejobs}
+	make install
+
+	rm -rf ${wrksrc}/build-stage0
+	touch ${wrksrc}/.stage0_done
+}
+
+_build_stage1() {
+	[ -e ${wrksrc}/.stage1_done ] && return 0
+	mkdir ${wrksrc}/build-stage1
+	mkdir ${wrksrc}/install-stage1
+
+	cd ${wrksrc}/build-stage1
+	CC="${wrksrc}/install-stage0/bin/clang" \
+	CXX="${wrksrc}/install-stage0/bin/clang++" \
+	CFLAGS="${_my_cflags}" \
+	CXXFLAGS="${_my_cflags}" \
+	cmake ../llvm \
+		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
+		-DBUILD_SHARED_LIBS=on \
+		-DLLVM_TARGETS_TO_BUILD=host \
+		-DLLVM_INCLUDE_TOOLS=bootstrap-only \
+		-DLLVM_EXTERNAL_LIBCXX_BUILD=on \
+		-DLLVM_EXTERNAL_LIBCXXABI_BUILD=on \
+		-DLLVM_EXTERNAL_COMPILER_RT_BUILD=on \
+		-DLLVM_REQUIRES_RTTI=on \
+		-DLLVM_ENABLE_FFI=on \
+		-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=R600 \
+		-DCMAKE_INSTALL_PREFIX=${wrksrc}/install-stage1 \
+		-DCMAKE_BUILD_TYPE=Release
+	make ${makejobs}
+	make install
+
+	rm -rf ${wrksrc}/build-stage1
+	touch ${wrksrc}/.stage1_done
+}
+
+_build_stage2() {
+	[ -e ${wrksrc}/.stage2_done ] && return 0
+	mkdir ${wrksrc}/build-stage2
+
+	cd ${wrksrc}/build-stage2
+	CC="${wrksrc}/install-stage1/bin/clang" \
+	CXX="${wrksrc}/install-stage1/bin/clang++" \
+	CFLAGS="${_my_cflags} -stdlib=libc++" \
+	CXXFLAGS="${_my_cflags} -stdlib=libc++" \
+	cmake ../llvm \
+		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
+		-DBUILD_SHARED_LIBS=on \
+		-DLLVM_TARGETS_TO_BUILD=all \
+		-DLLVM_INCLUDE_TOOLS=on \
+		-DLLVM_EXTERNAL_LIBCXX_BUILD=on \
+		-DLLVM_EXTERNAL_LIBCXXABI_BUILD=on \
+		-DLLVM_EXTERNAL_COMPILER_RT_BUILD=on \
+		-DLLVM_REQUIRES_RTTI=on \
+		-DLLVM_ENABLE_FFI=on \
+		-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=R600 \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=Release
+	make ${makejobs}
+
+	touch ${wrksrc}/.stage2_done
+}
+
+do_build() {
 	unset CC CXX CPP AR AS RANLIB CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
 
 	# Fix installation directories, ./configure doesn't seem to set them right
 	sed -i -e 's:\$(PROJ_prefix)/etc/llvm:/etc/llvm:' \
 		-e 's:\$(PROJ_prefix)/docs/llvm:$(PROJ_prefix)/share/doc/llvm:' \
-		Makefile.config.in
+		llvm/Makefile.config.in
 
-	mkdir build
-	cd build
-	../configure ${configure_args}
-}
-
-do_build() {
-	unset CC CXX CPP AR AS RANLIB CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
-	cd build
-	make REQUIRES_RTTI=1 ${makejobs}
+	_build_stage0
+	_build_stage1
+	_build_stage2
 }
 
 do_install() {
-	cd build
+	cd ${wrksrc}/build-stage2
 	make DESTDIR=${DESTDIR} install
 
 	# Fix permissions of static libs
@@ -166,6 +282,40 @@ lldb-devel_package() {
 	pkg_install() {
 		vmove usr/include/lldb
 		vmove "usr/lib/liblldb*.a"
+	}
+}
+libc++_package() {
+	lib32disabled=yes
+	short_desc+=" - C++ Standard Library"
+	homepage="http://libcxx.llvm.org/"
+	pkg_install() {
+		vmove "usr/lib/libc++*so"
+	}
+}
+libc++-devel_package() {
+	lib32disabled=yes
+	short_desc+=" - C++ Standard Library - development files"
+	homepage="http://libcxx.llvm.org/"
+	pkg_install() {
+		vmove usr/include/c++/v1
+		vmove "usr/lib/libc++*.a"
+	}
+}
+libc++abi_package() {
+	lib32disabled=yes
+	short_desc+=" - C++ Standard Library Support"
+	homepage="http://libcxxabi.llvm.org/"
+	pkg_install() {
+		vmove "usr/lib/libc++abi*so"
+	}
+}
+libc++abi-devel_package() {
+	lib32disabled=yes
+	short_desc+=" - C++ Library Library Support - development files"
+	homepage="http://libcxxabi.llvm.org/"
+	pkg_install() {
+		vmove usr/include/cxxabi
+		vmove "usr/lib/libc++abi*.a"
 	}
 }
 llvm-docs_package() {

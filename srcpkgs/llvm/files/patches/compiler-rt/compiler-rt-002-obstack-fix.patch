@@ -1,0 +1,29 @@
+diff --git lib/sanitizer_common/sanitizer_platform_limits_posix.cc lib/sanitizer_common/sanitizer_platform_limits_posix.cc
+index 6ffc143..9bc7bf0 100644
+--- lib/sanitizer_common/sanitizer_platform_limits_posix.cc
++++ lib/sanitizer_common/sanitizer_platform_limits_posix.cc
+@@ -127,7 +127,9 @@
+ 
+ #if SANITIZER_LINUX && !SANITIZER_ANDROID
+ #include <glob.h>
++#ifndef NO_HAVE_OBSTACK
+ #include <obstack.h>
++#endif
+ #include <mqueue.h>
+ #include <net/if_ppp.h>
+ #include <netax25/ax25.h>
+@@ -1176,6 +1178,7 @@ CHECK_SIZE_AND_OFFSET(FILE, _fileno);
+ #endif
+ 
+ #if SANITIZER_LINUX && !SANITIZER_ANDROID
++#ifndef NO_HAVE_OBSTACK
+ COMPILER_CHECK(sizeof(__sanitizer__obstack_chunk) <= sizeof(_obstack_chunk));
+ CHECK_SIZE_AND_OFFSET(_obstack_chunk, limit);
+ CHECK_SIZE_AND_OFFSET(_obstack_chunk, prev);
+@@ -1185,5 +1188,6 @@ CHECK_SIZE_AND_OFFSET(obstack, chunk);
+ CHECK_SIZE_AND_OFFSET(obstack, object_base);
+ CHECK_SIZE_AND_OFFSET(obstack, next_free);
+ #endif
++#endif
+ 
+ #endif  // SANITIZER_LINUX || SANITIZER_FREEBSD || SANITIZER_MAC

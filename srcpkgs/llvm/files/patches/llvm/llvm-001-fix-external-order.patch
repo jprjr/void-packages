@@ -1,0 +1,14 @@
+diff --git projects/CMakeLists.txt projects/CMakeLists.txt
+index 8d244fd..5aaf03f 100644
+--- projects/CMakeLists.txt
++++ projects/CMakeLists.txt
+@@ -19,8 +19,8 @@ if(${LLVM_BUILD_RUNTIME})
+   # MSVC isn't quite working with libc++ yet, disable it until issues are
+   # fixed.
+   if(NOT MSVC)
+-    add_llvm_external_project(libcxx)
+     add_llvm_external_project(libcxxabi)
++    add_llvm_external_project(libcxx)
+   endif()
+   if(NOT LLVM_BUILD_EXTERNAL_COMPILER_RT)
+     add_llvm_external_project(compiler-rt)
