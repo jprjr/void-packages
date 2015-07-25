@@ -1,5 +1,5 @@
 diff --git include/__config include/__config
-index 00ade4e..fa60e53 100644
+index 00ade4e..881082c 100644
 --- include/__config
 +++ include/__config
 @@ -332,12 +332,17 @@ typedef __char32_t char32_t;
@@ -13,7 +13,7 @@ index 00ade4e..fa60e53 100644
  #if __GLIBC_PREREQ(2, 17)
  #define _LIBCPP_HAS_C11_FEATURES
  #endif
-+#else
++#elif defined __MUSL__
 +#define _LIBCPP_HAS_QUICK_EXIT
 +#define _LIBCPP_HAS_C11_FEATURES
 +#endif

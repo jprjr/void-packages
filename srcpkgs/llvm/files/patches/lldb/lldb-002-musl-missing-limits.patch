@@ -1,0 +1,14 @@
+diff --git source/Host/common/FileSpec.cpp source/Host/common/FileSpec.cpp
+index 0af0556..dfda0ad 100644
+--- source/Host/common/FileSpec.cpp
++++ source/Host/common/FileSpec.cpp
+@@ -21,6 +21,9 @@
+ #include <set>
+ #include <string.h>
+ #include <fstream>
++#ifdef __MUSL__
++#include <limits.h>
++#endif
+ 
+ #include "lldb/Host/Config.h" // Have to include this before we test the define...
+ #ifdef LLDB_CONFIG_TILDE_RESOLVES_TO_USER

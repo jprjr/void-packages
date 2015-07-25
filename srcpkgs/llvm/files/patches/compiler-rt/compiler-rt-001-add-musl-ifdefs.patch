@@ -1,5 +1,80 @@
+diff --git lib/asan/asan_linux.cc lib/asan/asan_linux.cc
+index 6560500..7e3b070 100644
+--- lib/asan/asan_linux.cc
++++ lib/asan/asan_linux.cc
+@@ -39,7 +39,7 @@
+ #include <sys/link_elf.h>
+ #endif
+ 
+-#if SANITIZER_ANDROID || SANITIZER_FREEBSD
++#if SANITIZER_ANDROID || SANITIZER_FREEBSD || defined(__MUSL__)
+ #include <ucontext.h>
+ extern "C" void* _DYNAMIC;
+ #else
+@@ -77,7 +77,7 @@ void *AsanDoesNotSupportStaticLinkage() {
+   return &_DYNAMIC;  // defined in link.h
+ }
+ 
+-#if SANITIZER_ANDROID
++#if SANITIZER_ANDROID || defined(__MUSL__)
+ // FIXME: should we do anything for Android?
+ void AsanCheckDynamicRTPrereqs() {}
+ void AsanCheckIncompatibleRT() {}
+diff --git lib/interception/interception_linux.cc lib/interception/interception_linux.cc
+index 6e908ac..207c5d0 100644
+--- lib/interception/interception_linux.cc
++++ lib/interception/interception_linux.cc
+@@ -24,7 +24,7 @@ bool GetRealFunctionAddress(const char *func_name, uptr *func_addr,
+   return real == wrapper;
+ }
+ 
+-#if !defined(__ANDROID__)  // android does not have dlvsym
++#if !defined(__MUSL__) && !defined(__ANDROID__)  // android does not have dlvsym
+ void *GetFuncAddrVer(const char *func_name, const char *ver) {
+   return dlvsym(RTLD_NEXT, func_name, ver);
+ }
+diff --git lib/interception/interception_linux.h lib/interception/interception_linux.h
+index d3f774b..4ec114f 100644
+--- lib/interception/interception_linux.h
++++ lib/interception/interception_linux.h
+@@ -34,7 +34,7 @@ void *GetFuncAddrVer(const char *func_name, const char *ver);
+       (::__interception::uptr) & (func),                                   \
+       (::__interception::uptr) & WRAP(func))
+ 
+-#if !defined(__ANDROID__)  // android does not have dlvsym
++#if !defined(__MUSL__) && !defined(__ANDROID__)  // android does not have dlvsym
+ # define INTERCEPT_FUNCTION_VER_LINUX_OR_FREEBSD(func, symver) \
+      ::__interception::real_##func = (func##_f)(unsigned long) \
+          ::__interception::GetFuncAddrVer(#func, symver)
+diff --git lib/msan/msan_linux.cc lib/msan/msan_linux.cc
+index e172525..7277326 100644
+--- lib/msan/msan_linux.cc
++++ lib/msan/msan_linux.cc
+@@ -26,7 +26,9 @@
+ #include <signal.h>
+ #include <unistd.h>
+ #include <unwind.h>
++#ifndef __MUSL__
+ #include <execinfo.h>
++#endif
+ #include <sys/time.h>
+ #include <sys/resource.h>
+ 
+diff --git lib/sanitizer_common/sanitizer_linux_libcdep.cc lib/sanitizer_common/sanitizer_linux_libcdep.cc
+index 4e09081..ed7b71a 100644
+--- lib/sanitizer_common/sanitizer_linux_libcdep.cc
++++ lib/sanitizer_common/sanitizer_linux_libcdep.cc
+@@ -25,7 +25,7 @@
+ #include "sanitizer_atomic.h"
+ #include "sanitizer_symbolizer.h"
+ 
+-#if SANITIZER_ANDROID || SANITIZER_FREEBSD
++#if SANITIZER_ANDROID || SANITIZER_FREEBSD || defined(__MUSL__)
+ #include <dlfcn.h>  // for dlsym()
+ #endif
+ 
 diff --git lib/sanitizer_common/sanitizer_platform_limits_posix.cc lib/sanitizer_common/sanitizer_platform_limits_posix.cc
-index 9bc7bf0..6d46a66 100644
+index 6ffc143..731c15a 100644
 --- lib/sanitizer_common/sanitizer_platform_limits_posix.cc
 +++ lib/sanitizer_common/sanitizer_platform_limits_posix.cc
 @@ -51,6 +51,7 @@
@@ -10,11 +85,15 @@ index 9bc7bf0..6d46a66 100644
  #include <time.h>
  #include <wchar.h>
  
-@@ -131,11 +132,13 @@
+@@ -127,13 +128,17 @@
+ 
+ #if SANITIZER_LINUX && !SANITIZER_ANDROID
+ #include <glob.h>
++#ifndef __MUSL__
  #include <obstack.h>
- #endif
++#endif
  #include <mqueue.h>
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
  #include <net/if_ppp.h>
  #include <netax25/ax25.h>
  #include <netipx/ipx.h>
@@ -24,53 +103,52 @@ index 9bc7bf0..6d46a66 100644
  #include <scsi/scsi.h>
  #include <sys/mtio.h>
  #include <sys/kd.h>
-@@ -143,7 +146,9 @@
+@@ -141,7 +146,9 @@
  #include <sys/statvfs.h>
  #include <sys/timex.h>
  #include <sys/user.h>
-+#ifndef NO_HAVE_USTAT
++#ifndef __MUSL__
  #include <sys/ustat.h>
 +#endif
  #include <linux/cyclades.h>
  #include <linux/if_eql.h>
  #include <linux/if_plip.h>
-@@ -236,7 +241,9 @@ namespace __sanitizer {
+@@ -234,7 +241,9 @@ namespace __sanitizer {
  #endif  // SANITIZER_LINUX || SANITIZER_FREEBSD
  
  #if SANITIZER_LINUX && !SANITIZER_ANDROID
-+#ifndef NO_HAVE_USTAT
++#ifndef __MUSL__
    unsigned struct_ustat_sz = sizeof(struct ustat);
 +#endif
    unsigned struct_rlimit64_sz = sizeof(struct rlimit64);
    unsigned struct_statvfs64_sz = sizeof(struct statvfs64);
  #endif  // SANITIZER_LINUX && !SANITIZER_ANDROID
-@@ -282,8 +289,10 @@ namespace __sanitizer {
+@@ -280,8 +289,10 @@ namespace __sanitizer {
  
  #if (SANITIZER_LINUX || SANITIZER_FREEBSD) && !SANITIZER_ANDROID
    int glob_nomatch = GLOB_NOMATCH;
-+#ifndef NO_HAVE_ALTDIRFUNC
++#ifndef __MUSL__
    int glob_altdirfunc = GLOB_ALTDIRFUNC;
  #endif
 +#endif
  
  #if SANITIZER_LINUX && !SANITIZER_ANDROID && \
      (defined(__i386) || defined(__x86_64))
-@@ -353,7 +362,10 @@ namespace __sanitizer {
+@@ -351,7 +362,9 @@ namespace __sanitizer {
    unsigned struct_input_absinfo_sz = sizeof(struct input_absinfo);
    unsigned struct_input_id_sz = sizeof(struct input_id);
    unsigned struct_mtpos_sz = sizeof(struct mtpos);
-+/* TODO This is a hack */
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
    unsigned struct_termio_sz = sizeof(struct termio);
 +#endif
    unsigned struct_vt_consize_sz = sizeof(struct vt_consize);
    unsigned struct_vt_sizes_sz = sizeof(struct vt_sizes);
    unsigned struct_vt_stat_sz = sizeof(struct vt_stat);
-@@ -380,33 +392,43 @@ namespace __sanitizer {
+@@ -378,33 +391,43 @@ namespace __sanitizer {
  #endif  // SANITIZER_LINUX || SANITIZER_FREEBSD
  
  #if SANITIZER_LINUX && !SANITIZER_ANDROID
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
    unsigned struct_ax25_parms_struct_sz = sizeof(struct ax25_parms_struct);
 +#endif
    unsigned struct_cyclades_monitor_sz = sizeof(struct cyclades_monitor);
@@ -79,7 +157,7 @@ index 9bc7bf0..6d46a66 100644
  #else
    unsigned struct_input_keymap_entry_sz = 0;
  #endif
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
    unsigned struct_ipx_config_data_sz = sizeof(struct ipx_config_data);
 +#endif
    unsigned struct_kbdiacrs_sz = sizeof(struct kbdiacrs);
@@ -87,7 +165,7 @@ index 9bc7bf0..6d46a66 100644
    unsigned struct_kbkeycode_sz = sizeof(struct kbkeycode);
    unsigned struct_kbsentry_sz = sizeof(struct kbsentry);
    unsigned struct_mtconfiginfo_sz = sizeof(struct mtconfiginfo);
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
    unsigned struct_nr_parms_struct_sz = sizeof(struct nr_parms_struct);
 +#endif
    unsigned struct_scc_modem_sz = sizeof(struct scc_modem);
@@ -95,7 +173,7 @@ index 9bc7bf0..6d46a66 100644
    unsigned struct_serial_multiport_struct_sz
        = sizeof(struct serial_multiport_struct);
    unsigned struct_serial_struct_sz = sizeof(struct serial_struct);
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
    unsigned struct_sockaddr_ax25_sz = sizeof(struct sockaddr_ax25);
 +#endif
    unsigned struct_unimapdesc_sz = sizeof(struct unimapdesc);
@@ -103,22 +181,22 @@ index 9bc7bf0..6d46a66 100644
  #endif  // SANITIZER_LINUX && !SANITIZER_ANDROID
  
  #if (SANITIZER_LINUX || SANITIZER_FREEBSD) && !SANITIZER_ANDROID
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
    unsigned struct_audio_buf_info_sz = sizeof(struct audio_buf_info);
    unsigned struct_ppp_stats_sz = sizeof(struct ppp_stats);
 +#endif
  #endif  // (SANITIZER_LINUX || SANITIZER_FREEBSD) && !SANITIZER_ANDROID
  
  #if !SANITIZER_ANDROID && !SANITIZER_MAC
-@@ -556,6 +578,7 @@ namespace __sanitizer {
+@@ -554,6 +577,7 @@ namespace __sanitizer {
    unsigned IOCTL_HDIO_SET_NOWERR = HDIO_SET_NOWERR;
    unsigned IOCTL_HDIO_SET_UNMASKINTR = HDIO_SET_UNMASKINTR;
    unsigned IOCTL_MTIOCPOS = MTIOCPOS;
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
    unsigned IOCTL_PPPIOCGASYNCMAP = PPPIOCGASYNCMAP;
    unsigned IOCTL_PPPIOCGDEBUG = PPPIOCGDEBUG;
    unsigned IOCTL_PPPIOCGFLAGS = PPPIOCGFLAGS;
-@@ -567,6 +590,7 @@ namespace __sanitizer {
+@@ -565,6 +589,7 @@ namespace __sanitizer {
    unsigned IOCTL_PPPIOCSMAXCID = PPPIOCSMAXCID;
    unsigned IOCTL_PPPIOCSMRU = PPPIOCSMRU;
    unsigned IOCTL_PPPIOCSXASYNCMAP = PPPIOCSXASYNCMAP;
@@ -126,21 +204,21 @@ index 9bc7bf0..6d46a66 100644
    unsigned IOCTL_SIOCADDRT = SIOCADDRT;
    unsigned IOCTL_SIOCDARP = SIOCDARP;
    unsigned IOCTL_SIOCDELRT = SIOCDELRT;
-@@ -818,6 +842,7 @@ namespace __sanitizer {
+@@ -816,6 +841,7 @@ namespace __sanitizer {
    unsigned IOCTL_SCSI_IOCTL_PROBE_HOST = SCSI_IOCTL_PROBE_HOST;
    unsigned IOCTL_SCSI_IOCTL_TAGGED_DISABLE = SCSI_IOCTL_TAGGED_DISABLE;
    unsigned IOCTL_SCSI_IOCTL_TAGGED_ENABLE = SCSI_IOCTL_TAGGED_ENABLE;
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
    unsigned IOCTL_SIOCAIPXITFCRT = SIOCAIPXITFCRT;
    unsigned IOCTL_SIOCAIPXPRISLT = SIOCAIPXPRISLT;
    unsigned IOCTL_SIOCAX25ADDUID = SIOCAX25ADDUID;
-@@ -826,12 +851,15 @@ namespace __sanitizer {
+@@ -824,12 +850,15 @@ namespace __sanitizer {
    unsigned IOCTL_SIOCAX25GETUID = SIOCAX25GETUID;
    unsigned IOCTL_SIOCAX25NOUID = SIOCAX25NOUID;
    unsigned IOCTL_SIOCAX25SETPARMS = SIOCAX25SETPARMS;
 +#endif
    unsigned IOCTL_SIOCDEVPLIP = SIOCDEVPLIP;
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
    unsigned IOCTL_SIOCIPXCFGDATA = SIOCIPXCFGDATA;
    unsigned IOCTL_SIOCNRDECOBS = SIOCNRDECOBS;
    unsigned IOCTL_SIOCNRGETPARMS = SIOCNRGETPARMS;
@@ -150,15 +228,15 @@ index 9bc7bf0..6d46a66 100644
    unsigned IOCTL_TIOCGSERIAL = TIOCGSERIAL;
    unsigned IOCTL_TIOCSERGETMULTI = TIOCSERGETMULTI;
    unsigned IOCTL_TIOCSERSETMULTI = TIOCSERSETMULTI;
-@@ -913,6 +941,7 @@ CHECK_TYPE_SIZE(glob_t);
+@@ -911,6 +940,7 @@ CHECK_TYPE_SIZE(glob_t);
  CHECK_SIZE_AND_OFFSET(glob_t, gl_pathc);
  CHECK_SIZE_AND_OFFSET(glob_t, gl_pathv);
  CHECK_SIZE_AND_OFFSET(glob_t, gl_offs);
-+#ifndef NO_HAVE_ALTDIRFUNC
++#ifndef __MUSL__
  CHECK_SIZE_AND_OFFSET(glob_t, gl_flags);
  CHECK_SIZE_AND_OFFSET(glob_t, gl_closedir);
  CHECK_SIZE_AND_OFFSET(glob_t, gl_readdir);
-@@ -920,6 +949,7 @@ CHECK_SIZE_AND_OFFSET(glob_t, gl_opendir);
+@@ -918,6 +948,7 @@ CHECK_SIZE_AND_OFFSET(glob_t, gl_opendir);
  CHECK_SIZE_AND_OFFSET(glob_t, gl_lstat);
  CHECK_SIZE_AND_OFFSET(glob_t, gl_stat);
  #endif
@@ -166,31 +244,31 @@ index 9bc7bf0..6d46a66 100644
  
  CHECK_TYPE_SIZE(addrinfo);
  CHECK_SIZE_AND_OFFSET(addrinfo, ai_flags);
-@@ -946,13 +976,19 @@ CHECK_TYPE_SIZE(msghdr);
+@@ -944,13 +975,19 @@ CHECK_TYPE_SIZE(msghdr);
  CHECK_SIZE_AND_OFFSET(msghdr, msg_name);
  CHECK_SIZE_AND_OFFSET(msghdr, msg_namelen);
  CHECK_SIZE_AND_OFFSET(msghdr, msg_iov);
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
  CHECK_SIZE_AND_OFFSET(msghdr, msg_iovlen);
 +#endif
  CHECK_SIZE_AND_OFFSET(msghdr, msg_control);
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
  CHECK_SIZE_AND_OFFSET(msghdr, msg_controllen);
 +#endif
  CHECK_SIZE_AND_OFFSET(msghdr, msg_flags);
  
  CHECK_TYPE_SIZE(cmsghdr);
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
  CHECK_SIZE_AND_OFFSET(cmsghdr, cmsg_len);
 +#endif
  CHECK_SIZE_AND_OFFSET(cmsghdr, cmsg_level);
  CHECK_SIZE_AND_OFFSET(cmsghdr, cmsg_type);
  
-@@ -1057,13 +1093,17 @@ CHECK_SIZE_AND_OFFSET(ipc_perm, key);
+@@ -1055,13 +1092,17 @@ CHECK_SIZE_AND_OFFSET(ipc_perm, key);
  CHECK_SIZE_AND_OFFSET(ipc_perm, seq);
  # else
  CHECK_SIZE_AND_OFFSET(ipc_perm, __key);
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
  CHECK_SIZE_AND_OFFSET(ipc_perm, __seq);
 +#endif
  # endif
@@ -198,48 +276,70 @@ index 9bc7bf0..6d46a66 100644
  CHECK_SIZE_AND_OFFSET(ipc_perm, gid);
  CHECK_SIZE_AND_OFFSET(ipc_perm, cuid);
  CHECK_SIZE_AND_OFFSET(ipc_perm, cgid);
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
  CHECK_SIZE_AND_OFFSET(ipc_perm, mode);
 +#endif
  
  CHECK_TYPE_SIZE(shmid_ds);
  CHECK_SIZE_AND_OFFSET(shmid_ds, shm_perm);
-@@ -1109,8 +1149,10 @@ CHECK_SIZE_AND_OFFSET(ifaddrs, ifa_data);
+@@ -1107,8 +1148,10 @@ CHECK_SIZE_AND_OFFSET(ifaddrs, ifa_data);
  #endif
  
  #if SANITIZER_LINUX
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
  COMPILER_CHECK(sizeof(__sanitizer_mallinfo) == sizeof(struct mallinfo));
  #endif
 +#endif
  
  #if !SANITIZER_ANDROID
  CHECK_TYPE_SIZE(timeb);
-@@ -1146,6 +1188,7 @@ CHECK_SIZE_AND_OFFSET(group, gr_gid);
+@@ -1144,6 +1187,7 @@ CHECK_SIZE_AND_OFFSET(group, gr_gid);
  CHECK_SIZE_AND_OFFSET(group, gr_mem);
  
  #if SANITIZER_LINUX && !SANITIZER_ANDROID
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
  CHECK_TYPE_SIZE(XDR);
  CHECK_SIZE_AND_OFFSET(XDR, x_op);
  CHECK_SIZE_AND_OFFSET(XDR, x_ops);
-@@ -1157,8 +1200,11 @@ COMPILER_CHECK(__sanitizer_XDR_ENCODE == XDR_ENCODE);
+@@ -1155,8 +1199,10 @@ COMPILER_CHECK(__sanitizer_XDR_ENCODE == XDR_ENCODE);
  COMPILER_CHECK(__sanitizer_XDR_DECODE == XDR_DECODE);
  COMPILER_CHECK(__sanitizer_XDR_FREE == XDR_FREE);
  #endif
 +#endif
  
  #if SANITIZER_LINUX && !SANITIZER_ANDROID
-+/* TODO this is a hack */
-+#ifndef MUSL_NETWORKING_STACK
++#ifndef __MUSL__
  COMPILER_CHECK(sizeof(__sanitizer_FILE) <= sizeof(FILE));
  CHECK_SIZE_AND_OFFSET(FILE, _flags);
  CHECK_SIZE_AND_OFFSET(FILE, _IO_read_ptr);
-@@ -1176,6 +1222,7 @@ CHECK_SIZE_AND_OFFSET(FILE, _markers);
+@@ -1174,8 +1220,10 @@ CHECK_SIZE_AND_OFFSET(FILE, _markers);
  CHECK_SIZE_AND_OFFSET(FILE, _chain);
  CHECK_SIZE_AND_OFFSET(FILE, _fileno);
  #endif
 +#endif
  
  #if SANITIZER_LINUX && !SANITIZER_ANDROID
- #ifndef NO_HAVE_OBSTACK
++#ifndef __MUSL__
+ COMPILER_CHECK(sizeof(__sanitizer__obstack_chunk) <= sizeof(_obstack_chunk));
+ CHECK_SIZE_AND_OFFSET(_obstack_chunk, limit);
+ CHECK_SIZE_AND_OFFSET(_obstack_chunk, prev);
+@@ -1185,5 +1233,6 @@ CHECK_SIZE_AND_OFFSET(obstack, chunk);
+ CHECK_SIZE_AND_OFFSET(obstack, object_base);
+ CHECK_SIZE_AND_OFFSET(obstack, next_free);
+ #endif
++#endif
+ 
+ #endif  // SANITIZER_LINUX || SANITIZER_FREEBSD || SANITIZER_MAC
+diff --git lib/tsan/rtl/tsan_platform_linux.cc lib/tsan/rtl/tsan_platform_linux.cc
+index 4dcfa55..6468d10 100644
+--- lib/tsan/rtl/tsan_platform_linux.cc
++++ lib/tsan/rtl/tsan_platform_linux.cc
+@@ -353,7 +353,7 @@ bool IsGlobalVar(uptr addr) {
+ // This is required to properly "close" the fds, because we do not see internal
+ // closes within glibc. The code is a pure hack.
+ int ExtractResolvFDs(void *state, int *fds, int nfd) {
+-#if SANITIZER_LINUX
++#if SANITIZER_LINUX && !defined(__MUSL__)
+   int cnt = 0;
+   __res_state *statp = (__res_state*)state;
+   for (int i = 0; i < MAXNS && cnt < nfd; i++) {

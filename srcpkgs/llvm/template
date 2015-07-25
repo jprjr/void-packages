@@ -1,7 +1,7 @@
 # Template file for 'llvm'
 pkgname=llvm
 version=3.6.2
-revision=1
+revision=2
 wrksrc="llvm-${version}.src"
 lib32disabled=yes
 configure_args="--disable-expensive-checks --disable-debug-runtime
@@ -43,7 +43,7 @@ fi
 
 _my_cflags=""
 case "${XBPS_TARGET_MACHINE}" in
-  *-musl) _my_cflags="-DNO_HAVE_OBSTACK -DNO_HAVE_DLVSYM -DNO_HAVE_USTAT -DMUSL_NETWORKING_STACK -DNO_HAVE_ALTDIRFUNC" ;;
+  *-musl) _my_cflags="-D__MUSL__" ;;
 esac
 
 post_extract() {
@@ -63,10 +63,10 @@ post_extract() {
 		patch -sNp0 -i ${i}
 	done
 
-	#cd ${XBPS_BUILDDIR}/lldb-${version}.src
-	#for i in ${FILESDIR}/patches/lldb/*.patch; do
-	#	patch -sNp0 -i ${i}
-	#done
+	cd ${XBPS_BUILDDIR}/lldb-${version}.src
+	for i in ${FILESDIR}/patches/lldb/*.patch; do
+		patch -sNp0 -i ${i}
+	done
 
 	cd ${XBPS_BUILDDIR}/libcxx-${version}.src
 	for i in ${FILESDIR}/patches/libcxx/*.patch; do
@@ -78,35 +78,25 @@ post_extract() {
 	#	patch -sNp0 -i ${i}
 	#done
 
-	# Move clang files into the llvm source.
-	if [ -d ${XBPS_BUILDDIR}/cfe-${version}.src ]; then
-		mv ${XBPS_BUILDDIR}/cfe-${version}.src ${wrksrc}/tools/clang
-	fi
-	# Move lldb files into the llvm source.
-	if [ -z "$CROSS_BUILD" -a -d ${XBPS_BUILDDIR}/lldb-${version}.src ]; then
-		mv ${XBPS_BUILDDIR}/lldb-${version}.src ${wrksrc}/tools/lldb
-	fi
-	# Move lld files into the llvm source.
-	if [ -z "$CROSS_BUILD" -a -d ${XBPS_BUILDDIR}/lld-${version}.src ]; then
-		mv ${XBPS_BUILDDIR}/lld-${version}.src ${wrksrc}/tools/lld
-	fi
-	# Move compiler-rt files into the llvm source.
-	if [ -d ${XBPS_BUILDDIR}/compiler-rt-${version}.src ]; then
-		mv ${XBPS_BUILDDIR}/compiler-rt-${version}.src ${wrksrc}/projects/compiler-rt
-	fi
-	# Move libcxx files into the llvm source.
-	if [ -d ${XBPS_BUILDDIR}/libcxx-${version}.src ]; then
-		mv ${XBPS_BUILDDIR}/libcxx-${version}.src ${wrksrc}/projects/libcxx
-	fi
-	# Move libcxxabi files into the llvm source.
-	if [ -d ${XBPS_BUILDDIR}/libcxxabi-${version}.src ]; then
-		mv ${XBPS_BUILDDIR}/libcxxabi-${version}.src ${wrksrc}/projects/libcxxabi
-	fi
+        mkdir ${XBPS_BUILDDIR}/repos
+	mv ${XBPS_BUILDDIR}/llvm-${version}.src        ${XBPS_BUILDDIR}/repos/
+	mv ${XBPS_BUILDDIR}/cfe-${version}.src         ${XBPS_BUILDDIR}/repos/
+	mv ${XBPS_BUILDDIR}/lldb-${version}.src        ${XBPS_BUILDDIR}/repos/
+	mv ${XBPS_BUILDDIR}/lld-${version}.src         ${XBPS_BUILDDIR}/repos/
+	mv ${XBPS_BUILDDIR}/compiler-rt-${version}.src ${XBPS_BUILDDIR}/repos/
+	mv ${XBPS_BUILDDIR}/libcxx-${version}.src      ${XBPS_BUILDDIR}/repos/
+	mv ${XBPS_BUILDDIR}/libcxxabi-${version}.src   ${XBPS_BUILDDIR}/repos/
 
-	# move wrksrc to a subdir
-        mkdir ${XBPS_BUILDDIR}/llvm
-	mv ${wrksrc}/* ${XBPS_BUILDDIR}/llvm/
-	mv ${XBPS_BUILDDIR}/llvm ${wrksrc}/
+        mkdir ${wrksrc}
+        mv ${XBPS_BUILDDIR}/repos ${wrksrc}/repos
+
+	# lldb gets moved in later, after stage0 compile
+	mv ${wrksrc}/repos/llvm-${version}.src         ${wrksrc}/llvm
+	mv ${wrksrc}/repos/cfe-${version}.src          ${wrksrc}/llvm/tools/clang
+	mv ${wrksrc}/repos/lld-${version}.src          ${wrksrc}/llvm/tools/lld
+	mv ${wrksrc}/repos/compiler-rt-${version}.src  ${wrksrc}/llvm/projects/compiler-rt
+	mv ${wrksrc}/repos/libcxx-${version}.src       ${wrksrc}/llvm/projects/libcxx
+	mv ${wrksrc}/repos/libcxxabi-${version}.src    ${wrksrc}/llvm/projects/libcxxabi
 }
 
 _build_stage0() {
@@ -121,7 +111,7 @@ _build_stage0() {
 		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
 		-DBUILD_SHARED_LIBS=on \
 		-DLLVM_TARGETS_TO_BUILD=host \
-		-DLLVM_INCLUDE_TOOLS=bootstrap-only \
+		-DLLVM_INCLUDE_TOOLS=on \
 		-DLLVM_EXTERNAL_LIBCXX_BUILD=off \
 		-DLLVM_EXTERNAL_LIBCXXABI_BUILD=off \
 		-DLLVM_EXTERNAL_COMPILER_RT_BUILD=off \
@@ -142,6 +132,8 @@ _build_stage1() {
 	mkdir ${wrksrc}/build-stage1
 	mkdir ${wrksrc}/install-stage1
 
+	mv ${wrksrc}/repos/lldb-${version}.src        ${wrksrc}/llvm/tools/lldb
+
 	cd ${wrksrc}/build-stage1
 	CC="${wrksrc}/install-stage0/bin/clang" \
 	CXX="${wrksrc}/install-stage0/bin/clang++" \
@@ -151,7 +143,7 @@ _build_stage1() {
 		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
 		-DBUILD_SHARED_LIBS=on \
 		-DLLVM_TARGETS_TO_BUILD=host \
-		-DLLVM_INCLUDE_TOOLS=bootstrap-only \
+		-DLLVM_INCLUDE_TOOLS=on \
 		-DLLVM_EXTERNAL_LIBCXX_BUILD=on \
 		-DLLVM_EXTERNAL_LIBCXXABI_BUILD=on \
 		-DLLVM_EXTERNAL_COMPILER_RT_BUILD=on \

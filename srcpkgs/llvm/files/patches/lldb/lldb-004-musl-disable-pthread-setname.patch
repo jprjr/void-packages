@@ -1,0 +1,14 @@
+diff --git source/Host/linux/HostThreadLinux.cpp source/Host/linux/HostThreadLinux.cpp
+index 619bd24..7ef4b25 100644
+--- source/Host/linux/HostThreadLinux.cpp
++++ source/Host/linux/HostThreadLinux.cpp
+@@ -30,7 +30,9 @@ HostThreadLinux::HostThreadLinux(lldb::thread_t thread)
+ void
+ HostThreadLinux::SetName(lldb::thread_t thread, llvm::StringRef name)
+ {
++    #ifndef __MUSL__
+     ::pthread_setname_np(thread, name.data());
++    #endif
+ }
+ 
+ void
