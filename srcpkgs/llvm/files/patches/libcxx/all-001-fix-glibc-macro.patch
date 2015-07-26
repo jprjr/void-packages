@@ -13,7 +13,7 @@ index 00ade4e..881082c 100644
  #if __GLIBC_PREREQ(2, 17)
  #define _LIBCPP_HAS_C11_FEATURES
  #endif
-+#elif defined __MUSL__
++#elif !defined(__GLIBC__)
 +#define _LIBCPP_HAS_QUICK_EXIT
 +#define _LIBCPP_HAS_C11_FEATURES
 +#endif

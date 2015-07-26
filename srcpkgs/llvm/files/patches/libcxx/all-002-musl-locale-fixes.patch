@@ -6,7 +6,7 @@ index 0d01002..3eb7d66 100644
          typename remove_reference<decltype(errno)>::type __save_errno = errno;
          errno = 0;
          char *__p2;
-+#if defined __MUSL__
++#if !defined(__GLIBC__)
 +        long long __ll = strtoll(__a, &__p2, __base);
 +#else
          long long __ll = strtoll_l(__a, &__p2, __base, _LIBCPP_GET_C_LOCALE);
@@ -18,7 +18,7 @@ index 0d01002..3eb7d66 100644
          typename remove_reference<decltype(errno)>::type __save_errno = errno;
          errno = 0;
          char *__p2;
-+#if defined __MUSL__
++#if !defined(__GLIBC__)
 +        unsigned long long __ll = strtoull(__a, &__p2, __base);
 +#else
          unsigned long long __ll = strtoull_l(__a, &__p2, __base, _LIBCPP_GET_C_LOCALE);
@@ -30,7 +30,7 @@ index 0d01002..3eb7d66 100644
          typename remove_reference<decltype(errno)>::type __save_errno = errno;
          errno = 0;
          char *__p2;
-+#if defined __MUSL__
++#if !defined(__GLIBC__)
 +        long double __ld = strtold(__a, &__p2);
 +#else
          long double __ld = strtold_l(__a, &__p2, _LIBCPP_GET_C_LOCALE);

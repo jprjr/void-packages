@@ -35,48 +35,52 @@ makedepends="python-devel zlib-devel libffi-devel libedit-devel"
 
 subpackages="clang clang-analyzer libllvm3.6 llvm-docs"
 subpackages+=" libc++ libc++-devel"
-subpackages+=" libc++abi libc++abi-devel"
-if [ -z "$CROSS_BUILD" ]; then
-	# XXX fails to cross compile due to python
-	subpackages+=" lldb lldb-devel"
-fi
-
-_my_cflags=""
 case "${XBPS_TARGET_MACHINE}" in
-  *-musl) _my_cflags="-D__MUSL__" ;;
+	*-musl) : ;;
+	*) subpackages+=" libc++abi libc++abi-devel"
 esac
+
+subpackages+=" lldb lldb-devel"
 
 post_extract() {
 	# patches
 	cd ${XBPS_BUILDDIR}/llvm-${version}.src
-	for i in ${FILESDIR}/patches/llvm/*.patch; do
+	for i in ${FILESDIR}/patches/llvm/all*.patch; do
 		patch -sNp0 -i ${i}
 	done
 
-	cd ${XBPS_BUILDDIR}/compiler-rt-${version}.src
-	for i in ${FILESDIR}/patches/compiler-rt/*.patch; do
-		patch -sNp0 -i ${i}
-	done
+	#cd ${XBPS_BUILDDIR}/compiler-rt-${version}.src
+	#for i in ${FILESDIR}/patches/compiler-rt/all*.patch; do
+	#	patch -sNp0 -i ${i}
+	#done
 
 	cd ${XBPS_BUILDDIR}/cfe-${version}.src
-	for i in ${FILESDIR}/patches/cfe/*.patch; do
+	for i in ${FILESDIR}/patches/cfe/all*.patch; do
 		patch -sNp0 -i ${i}
 	done
 
 	cd ${XBPS_BUILDDIR}/lldb-${version}.src
-	for i in ${FILESDIR}/patches/lldb/*.patch; do
+	for i in ${FILESDIR}/patches/lldb/all*.patch; do
 		patch -sNp0 -i ${i}
 	done
 
 	cd ${XBPS_BUILDDIR}/libcxx-${version}.src
-	for i in ${FILESDIR}/patches/libcxx/*.patch; do
+	for i in ${FILESDIR}/patches/libcxx/all*.patch; do
 		patch -sNp0 -i ${i}
 	done
 
-	#cd ${XBPS_BUILDDIR}/libcxxabi-${version}.src
-	#for i in ${FILESDIR}/patches/libcxxabi/*.patch; do
-	#	patch -sNp0 -i ${i}
-	#done
+	case "${XBPS_TARGET_MACHINE}" in
+	*-musl)
+		cd ${XBPS_BUILDDIR}/llvm-${version}.src
+		for i in ${FILESDIR}/patches/llvm/musl*.patch; do
+			patch -sNp0 -i ${i}
+		done
+		cd ${XBPS_BUILDDIR}/compiler-rt-${version}.src
+		for i in ${FILESDIR}/patches/compiler-rt/musl*.patch; do
+			patch -sNp0 -i ${i}
+		done
+		;;
+	esac
 
         mkdir ${XBPS_BUILDDIR}/repos
 	mv ${XBPS_BUILDDIR}/llvm-${version}.src        ${XBPS_BUILDDIR}/repos/
@@ -90,13 +94,16 @@ post_extract() {
         mkdir ${wrksrc}
         mv ${XBPS_BUILDDIR}/repos ${wrksrc}/repos
 
-	# lldb gets moved in later, after stage0 compile
 	mv ${wrksrc}/repos/llvm-${version}.src         ${wrksrc}/llvm
 	mv ${wrksrc}/repos/cfe-${version}.src          ${wrksrc}/llvm/tools/clang
 	mv ${wrksrc}/repos/lld-${version}.src          ${wrksrc}/llvm/tools/lld
 	mv ${wrksrc}/repos/compiler-rt-${version}.src  ${wrksrc}/llvm/projects/compiler-rt
 	mv ${wrksrc}/repos/libcxx-${version}.src       ${wrksrc}/llvm/projects/libcxx
 	mv ${wrksrc}/repos/libcxxabi-${version}.src    ${wrksrc}/llvm/projects/libcxxabi
+	case "${XBPS_TARGET_MACHINE}" in
+		*-musl) : ;;
+		*) mv ${wrksrc}/repos/lldb-${version}.src ${wrksrc}/llvm/tools/lldb
+	esac
 }
 
 _build_stage0() {
@@ -105,8 +112,6 @@ _build_stage0() {
 	mkdir ${wrksrc}/install-stage0
 
 	cd ${wrksrc}/build-stage0
-	CFLAGS="${_my_cflags}" \
-	CXXFLAGS="${_my_cflags}" \
 	cmake ../llvm \
 		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
 		-DBUILD_SHARED_LIBS=on \
@@ -132,13 +137,9 @@ _build_stage1() {
 	mkdir ${wrksrc}/build-stage1
 	mkdir ${wrksrc}/install-stage1
 
-	mv ${wrksrc}/repos/lldb-${version}.src        ${wrksrc}/llvm/tools/lldb
-
 	cd ${wrksrc}/build-stage1
 	CC="${wrksrc}/install-stage0/bin/clang" \
 	CXX="${wrksrc}/install-stage0/bin/clang++" \
-	CFLAGS="${_my_cflags}" \
-	CXXFLAGS="${_my_cflags}" \
 	cmake ../llvm \
 		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
 		-DBUILD_SHARED_LIBS=on \
@@ -166,8 +167,9 @@ _build_stage2() {
 	cd ${wrksrc}/build-stage2
 	CC="${wrksrc}/install-stage1/bin/clang" \
 	CXX="${wrksrc}/install-stage1/bin/clang++" \
-	CFLAGS="${_my_cflags} -stdlib=libc++" \
-	CXXFLAGS="${_my_cflags} -stdlib=libc++" \
+	CFLAGS="-stdlib=libc++" \
+	CXXFLAGS="-stdlib=libc++" \
+	LDFLAGS="-L${wrksrc}/install-stage1/lib -lc++abi" \
 	cmake ../llvm \
 		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
 		-DBUILD_SHARED_LIBS=on \
