@@ -28,6 +28,8 @@ hostmakedepends="cmake groff perl python zlib-devel libffi-devel swig"
 makedepends="python-devel zlib-devel libffi-devel libedit-devel"
 
 subpackages="clang clang-analyzer libllvm3.6 llvm-docs"
+subpackages+=" libc++ libc++-devel"
+subpackages+=" libc++abi libc++abi-devel"
 if [ -n "$CROSS_BUILD" ]; then
 	hostmakedepends+=" clang llvm-devel"
 fi
@@ -95,14 +97,20 @@ post_extract() {
 	mv "${XBPS_BUILDDIR}/llvm" "${wrksrc}/llvm"
 }
 
+_get_host_triplet() {
+	grep XBPS_TRIPLET "${XBPS_COMMONDIR}"/build-profiles/"$1".sh | sed 's/XBPS_TRIPLET=//; s/"//g'
+}
+
 _bootstrap_clang() {
 	[ -e ${wrksrc}/.bootstrap_done ] && return 0
 	mkdir ${wrksrc}/build-bootstrap
 	mkdir ${wrksrc}/install-bootstrap
 
+	HOST_TRIPLET=$(_get_host_triplet "${XBPS_MACHINE}")
+
 	cd ${wrksrc}/build-bootstrap
 	cmake ../llvm \
-		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
+		-DLLVM_DEFAULT_TARGET_TRIPLE="${HOST_TRIPLET}" \
 		-DBUILD_SHARED_LIBS=on \
 		-DLLVM_TARGETS_TO_BUILD=host \
 		-DLLVM_INCLUDE_TOOLS=on \
@@ -110,7 +118,7 @@ _bootstrap_clang() {
 		-DLLVM_EXTERNAL_LIBCXXABI_BUILD=off \
 		-DLLVM_EXTERNAL_COMPILER_RT_BUILD=off \
 		-DLLVM_REQUIRES_RTTI=on \
-		-DLLVM_ENABLE_FFI=on \
+		-DLLVM_ENABLE_FFI=off \
 		-DCMAKE_INSTALL_PREFIX=${wrksrc}/install-bootstrap \
 		-DCMAKE_BUILD_TYPE=Release
 	make ${makejobs}
@@ -129,12 +137,13 @@ do_configure() {
 		-e 's:\$(PROJ_prefix)/docs/llvm:$(PROJ_prefix)/share/doc/llvm:' \
 		"${wrksrc}/llvm/Makefile.config.in"
 
+	TARGET_TRIPLET=$(_get_host_triplet "${XBPS_TARGET_MACHINE}")
 	_MY_CC=""
 	_MY_CXX=""
 	if [ -z "$CROSS_BUILD" ]; then
 		_bootstrap_clang
-		_MY_CC="${wrksrc}/install-boostrap/bin/clang"
-		_MY_CXX="${wrksrc}/install-boostrap/bin/clang++"
+		_MY_CC="${wrksrc}/install-bootstrap/bin/clang"
+		_MY_CXX="${wrksrc}/install-bootstrap/bin/clang++"
 		_MY_LD="${wrksrc}/install-bootstrap/bin/lld"
 	else
 		_MY_CC="/usr/bin/clang"
@@ -148,10 +157,13 @@ do_configure() {
 	CXX="${_MY_CXX}" \
 	LD="${_MY_LD}" \
 	cmake ../llvm  \
-		-DLLVM_DEFAULT_TARGET_TRIPLE="${XBPS_TRIPLET}" \
+		-DLLVM_HOST_TRIPLE="${TARGET_TRIPLET}" \
+		-DLLVM_DEFAULT_TARGET_TRIPLE="${TARGET_TRIPLET}" \
 		-DBUILD_SHARED_LIBS=on \
 		-DLLVM_TARGETS_TO_BUILD=all \
 		-DLLVM_INCLUDE_TOOLS=on \
+		-DLLVM_EXTERNAL_LIBCXX_BUILD=on \
+		-DLLVM_EXTERNAL_LIBCXXABI_BUILD=on \
 		-DLLVM_EXTERNAL_COMPILER_RT_BUILD=on \
 		-DLLVM_REQUIRES_RTTI=on \
 		-DLLVM_ENABLE_FFI=on \
@@ -222,6 +234,40 @@ clang_package() {
 		vmove usr/lib/clang
 		vmove "usr/lib/libclang*"
 		vmove "usr/share/man/man1/*clang*"
+	}
+}
+libc++_package() {
+	lib32disabled=yes
+	short_desc+=" - C++ Standard Library"
+	homepage="http://libcxx.llvm.org/"
+	pkg_install() {
+		vmove "usr/lib/libc++*so"
+	}
+}
+libc++-devel_package() {
+	lib32disabled=yes
+	short_desc+=" - C++ Standard Library - development files"
+	homepage="http://libcxx.llvm.org/"
+	pkg_install() {
+		vmove usr/include/c++/v1
+		vmove "usr/lib/libc++*.a"
+	}
+}
+libc++abi_package() {
+	lib32disabled=yes
+	short_desc+=" - C++ Standard Library Support"
+	homepage="http://libcxxabi.llvm.org/"
+	pkg_install() {
+		vmove "usr/lib/libc++abi*so"
+	}
+}
+libc++abi-devel_package() {
+	lib32disabled=yes
+	short_desc+=" - C++ Library Library Support - development files"
+	homepage="http://libcxxabi.llvm.org/"
+	pkg_install() {
+		vmove usr/include/cxxabi
+		vmove "usr/lib/libc++abi*.a"
 	}
 }
 llvm-docs_package() {
