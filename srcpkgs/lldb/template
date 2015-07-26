@@ -1,0 +1,66 @@
+# Template file for 'lldb'
+pkgname=lldb
+version=3.6.2
+revision=1
+wrksrc="lldb-${version}.src"
+lib32disabled=yes
+short_desc="Low Level Virtual Machine - LLDB Debugger"
+maintainer="Juan RP <xtraeme@voidlinux.eu>"
+homepage="http://lldb.llvm.org"
+license="BSD"
+distfiles="
+ http://www.lldb.org/releases/${version}/lldb-${version}.src.tar.xz"
+checksum="
+ 940dc96b64919b7dbf32c37e0e1d1fc88cc18e1d4b3acf1e7dfe5a46eb6523a9"
+
+# XXX Investigate ocaml bindings.
+hostmakedepends="clang cmake groff python zlib-devel libffi-devel swig"
+makedepends="llvm-devel python-devel zlib-devel libffi-devel libedit-devel"
+
+post_extract() {
+	# lldb "all" patches
+	cd ${XBPS_BUILDDIR}/lldb-${version}.src
+	for i in ${FILESDIR}/patches/lldb/all-*.patch; do
+		patch -sNp0 -i ${i}
+	done
+}
+
+do_configure() {
+	unset CC CXX CPP AR AS RANLIB CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+
+	mkdir build
+	cd build
+	cmake ../  \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=Release
+}
+
+do_build() {
+	unset CC CXX CPP AR AS RANLIB CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+	cd build
+	make REQUIRES_RTTI=1 ${makejobs}
+}
+
+do_install() {
+	cd build
+	make DESTDIR=${DESTDIR} install
+
+	# Fix permissions of static libs
+	chmod -x ${DESTDIR}/usr/lib/*.a
+}
+
+lldb-devel_package() {
+	depends="lldb>=${version}_${revision}"
+	short_desc+=" - development files"
+	pkg_install() {
+		vmove usr/include/lldb
+		vmove "usr/lib/liblldb*.a"
+	}
+}
+lldb-docs_package() {
+	noarch=yes
+	short_desc+=" - documentation files"
+	pkg_install() {
+		vmove usr/share/doc
+	}
+}

@@ -1,0 +1,40 @@
+diff --git include/locale include/locale
+index 0d01002..3eb7d66 100644
+--- include/locale
++++ include/locale
+@@ -870,7 +870,11 @@ __num_get_signed_integral(const char* __a, const char* __a_end,
+         typename remove_reference<decltype(errno)>::type __save_errno = errno;
+         errno = 0;
+         char *__p2;
++#if !defined(__GLIBC__)
++        long long __ll = strtoll(__a, &__p2, __base);
++#else
+         long long __ll = strtoll_l(__a, &__p2, __base, _LIBCPP_GET_C_LOCALE);
++#endif
+         typename remove_reference<decltype(errno)>::type __current_errno = errno;
+         if (__current_errno == 0)
+             errno = __save_errno;
+@@ -910,7 +914,11 @@ __num_get_unsigned_integral(const char* __a, const char* __a_end,
+         typename remove_reference<decltype(errno)>::type __save_errno = errno;
+         errno = 0;
+         char *__p2;
++#if !defined(__GLIBC__)
++        unsigned long long __ll = strtoull(__a, &__p2, __base);
++#else
+         unsigned long long __ll = strtoull_l(__a, &__p2, __base, _LIBCPP_GET_C_LOCALE);
++#endif
+         typename remove_reference<decltype(errno)>::type __current_errno = errno;
+         if (__current_errno == 0)
+             errno = __save_errno;
+@@ -940,7 +948,11 @@ __num_get_float(const char* __a, const char* __a_end, ios_base::iostate& __err)
+         typename remove_reference<decltype(errno)>::type __save_errno = errno;
+         errno = 0;
+         char *__p2;
++#if !defined(__GLIBC__)
++        long double __ld = strtold(__a, &__p2);
++#else
+         long double __ld = strtold_l(__a, &__p2, _LIBCPP_GET_C_LOCALE);
++#endif
+         typename remove_reference<decltype(errno)>::type __current_errno = errno;
+         if (__current_errno == 0)
+             errno = __save_errno;
