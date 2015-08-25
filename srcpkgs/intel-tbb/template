@@ -1,0 +1,41 @@
+# Template build file for 'intel-tbb'
+pkgname=intel-tbb
+version=4.3.6
+revision=1
+short_desc="High level abstract threading library"
+maintainer="John Regan <john@jrjrtech.com>"
+license="GPL-2 (with runtime exception)"
+homepage="https://www.threadingbuildingblocks.org"
+distfiles="$homepage/sites/default/files/software_releases/source/tbb43_20150611oss_src.tgz"
+checksum="221f85fe64e11c9638e43b3c57d5750c26683905fc90827c0bcfefdb286e79c9"
+wrksrc="tbb43_20150611oss"
+nocross="yes"
+# XXX find a fix for cross-compiling
+
+# XXX musl lacks the 'mallinfo' struct needed
+# See https://software.intel.com/en-us/forums/topic/590172
+post_extract() {
+	sed -e "s@#define MALLOC_UNIXLIKE_OVERLOAD_ENABLED __linux__@@" \
+	  -i src/tbbmalloc/proxy.h
+}
+
+do_build() {
+	make
+}
+
+do_install() {
+	install -d $DESTDIR/usr/lib
+	install -m755 build/linux_*/*.so* $DESTDIR/usr/lib
+	install -d $DESTDIR/usr/include
+	cp -a include/tbb $DESTDIR/usr/include
+}
+
+intel-tbb-devel_package() {
+	short_desc+=" - development files"
+	depends="${sourcepkg}>=${version}_${revision}"
+	pkg_install() {
+		vmove usr/include
+		vmove usr/lib/*.so
+	}
+}
+
