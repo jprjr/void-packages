@@ -1,0 +1,21 @@
+diff --git third-party/folly/src/folly/detail/AtomicHashUtils.h third-party/folly/src/folly/detail/AtomicHashUtils.h
+index a896ba3..3d20bab 100644
+--- third-party/folly/src/folly/detail/AtomicHashUtils.h
++++ third-party/folly/src/folly/detail/AtomicHashUtils.h
+@@ -24,7 +24,7 @@
+ #define FOLLY_SPIN_WAIT(condition)                \
+    for (int counter = 0; condition; ++counter) {  \
+      if (counter < 10000) continue;               \
+-     pthread_yield();                             \
++     sched_yield();                               \
+    }
+ #else
+ #define FOLLY_SPIN_WAIT(condition)              \
+@@ -33,6 +33,6 @@
+       asm volatile("pause");                    \
+       continue;                                 \
+     }                                           \
+-    pthread_yield();                            \
++    sched_yield();                              \
+   }
+ #endif

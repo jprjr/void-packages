@@ -1,0 +1,418 @@
+diff --git hphp/hack/CMakeLists.txt hphp/hack/CMakeLists.txt
+index 6994274..12391f2 100644
+--- hphp/hack/CMakeLists.txt
++++ hphp/hack/CMakeLists.txt
+@@ -15,6 +15,7 @@ if (OCAMLC_FOUND)
+   endif()
+ 
+   list(APPEND extra_cc_flags -DOSS_SMALL_HH_TABLE_POWS)
++  list(APPEND extra_cc_flags -D_GNU_SOURCE)
+   list(APPEND extra_cc_flags -pthread)
+ 
+   foreach(lib ${LIBELF_LIBRARIES})
+diff --git hphp/hack/src/Makefile hphp/hack/src/Makefile
+index 19b5feb..095e3b8 100644
+--- hphp/hack/src/Makefile
++++ hphp/hack/src/Makefile
+@@ -4,7 +4,7 @@
+ 
+ EXTRA_INCLUDE_PATHS=
+ EXTRA_LIB_PATHS=
+-EXTRA_CC_FLAGS=
++EXTRA_CC_FLAGS="-D_GNU_SOURCE"
+ 
+ ################################################################################
+ #                              OS-dependent stuff                              #
+diff --git hphp/hack/src/third-party/inotify/inotify_stubs.c hphp/hack/src/third-party/inotify/inotify_stubs.c
+index 08fd301..0cd3732 100644
+--- hphp/hack/src/third-party/inotify/inotify_stubs.c
++++ hphp/hack/src/third-party/inotify/inotify_stubs.c
+@@ -29,11 +29,11 @@
+ 
+ #include <features.h>
+ 
+-#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 4
++/*
++* both glibc and musl have inotify
++* so let's just hardcode this
++*/
+ #define GLIBC_SUPPORT_INOTIFY 1
+-#else
+-#define GLIBC_SUPPORT_INOTIFY 0
+-#endif
+ 
+ #if GLIBC_SUPPORT_INOTIFY
+ #include <sys/inotify.h>
+diff --git hphp/runtime/base/rds.cpp hphp/runtime/base/rds.cpp
+index e2fcb23..179d6fd 100644
+--- hphp/runtime/base/rds.cpp
++++ hphp/runtime/base/rds.cpp
+@@ -23,8 +23,10 @@
+ 
+ #include <sys/mman.h>
+ #ifndef __CYGWIN__
++#if (defined(__GLIBC__))
+ #include <execinfo.h>
+ #endif
++#endif
+ 
+ #include <folly/String.h>
+ #include <folly/Hash.h>
+diff --git hphp/runtime/base/thread-hooks.cpp hphp/runtime/base/thread-hooks.cpp
+index 8d28e88..9e4eab6 100644
+--- hphp/runtime/base/thread-hooks.cpp
++++ hphp/runtime/base/thread-hooks.cpp
+@@ -17,7 +17,9 @@
+ #include <stdio.h>
+ #include <dlfcn.h>
+ #include <string.h>
++#if (defined(__GLIBC__))
+ #include <execinfo.h>
++#endif
+ #include <unistd.h>
+ 
+ #include "hphp/runtime/base/extended-logger.h"
+@@ -36,16 +38,20 @@ PthreadInfo::PthreadInfo(start_routine_t start, void* arg) :
+   pid = getpid();
+ 
+   if (RuntimeOption::EvalLogThreadCreateBacktraces) {
++#if (defined(__GLIBC__))
+     num_frames = backtrace(reinterpret_cast<void **>(&parent_bt),
+                            max_num_frames);
+     parent_bt_names = backtrace_symbols(
+       reinterpret_cast<void *const*>(&parent_bt),
+       num_frames);
++#endif
+     if (!parent_bt_names) {
+       Logger::Error("pthread_create: unable to get backtrace symbols");
+     }
++#if (defined(__GLIBC__))
+     start_name_ptr = backtrace_symbols(
+       reinterpret_cast<void *const *>(&start_routine), 1);
++#endif
+     if (!start_name_ptr) {
+       Logger::Error("pthread_create: unable to get start_routine name");
+     }
+diff --git hphp/runtime/base/thread-safe-setlocale.cpp hphp/runtime/base/thread-safe-setlocale.cpp
+index 7d67a9d..fb15117 100644
+--- hphp/runtime/base/thread-safe-setlocale.cpp
++++ hphp/runtime/base/thread-safe-setlocale.cpp
+@@ -64,7 +64,7 @@ ThreadSafeLocaleHandler::ThreadSafeLocaleHandler() {
+       FILL_IN_CATEGORY_LOCALE_MAP(LC_MONETARY),
+       FILL_IN_CATEGORY_LOCALE_MAP(LC_MESSAGES),
+       FILL_IN_CATEGORY_LOCALE_MAP(LC_ALL),
+-      #ifndef __APPLE__
++      #if (!defined(__APPLE__)) && (defined(__GLIBC__))
+       FILL_IN_CATEGORY_LOCALE_MAP(LC_PAPER),
+       FILL_IN_CATEGORY_LOCALE_MAP(LC_NAME),
+       FILL_IN_CATEGORY_LOCALE_MAP(LC_ADDRESS),
+@@ -183,7 +183,7 @@ const char* ThreadSafeLocaleHandler::actuallySetLocale(
+   return locale_cstr;
+ }
+ 
+-#ifdef __APPLE__
++#if defined(__APPLE__)
+ struct lconv* ThreadSafeLocaleHandler::localeconv() {
+   // BSD/OS X has localeconv_l, which actually returns data held onto by the
+   // locale itself -- and since that's thread-local (since this object instance
+@@ -199,6 +199,7 @@ struct lconv* ThreadSafeLocaleHandler::localeconv() {
+   // glibc does not have localeconv_l, and so we need to do some shenanigans.
+   struct lconv *ptr = g_thread_safe_localeconv_data.get();
+ 
++#if (defined(__GLIBC__))
+   ptr->decimal_point = nl_langinfo(DECIMAL_POINT);
+   ptr->thousands_sep = nl_langinfo(THOUSANDS_SEP);
+   ptr->grouping = nl_langinfo(GROUPING);
+@@ -233,7 +234,11 @@ struct lconv* ThreadSafeLocaleHandler::localeconv() {
+   ptr->__int_p_sign_posn = nl_langinfo(INT_P_SIGN_POSN)[0];
+   ptr->__int_n_sign_posn = nl_langinfo(INT_N_SIGN_POSN)[0];
+   #endif
+-
++#else
++/* for musl, just use localeconv */
++  struct lconv *l = localeconv();
++  memcpy(ptr, l, sizeof(struct lconv));
++#endif
+   return ptr;
+ }
+ #endif
+diff --git hphp/runtime/base/zend-printf.cpp hphp/runtime/base/zend-printf.cpp
+index a008f3a..a0ff585 100644
+--- hphp/runtime/base/zend-printf.cpp
++++ hphp/runtime/base/zend-printf.cpp
+@@ -48,6 +48,15 @@
+ #define isnan std::isnan
+ #endif
+ 
++/* double-check isnan and isinf exist */
++#if (!defined(isnan)) || (!defined(isinf))
++#include <cmath>
++#undef isinf
++#undef isnan
++#define isinf std::isinf
++#define isnan std::isnan
++#endif
++
+ namespace HPHP {
+ 
+ /* These definitions are coped from the Zend formatted output conversion
+diff --git hphp/runtime/ext/std/ext_std_file.cpp hphp/runtime/ext/std/ext_std_file.cpp
+index c596761..1d92ad8 100644
+--- hphp/runtime/ext/std/ext_std_file.cpp
++++ hphp/runtime/ext/std/ext_std_file.cpp
+@@ -135,6 +135,14 @@
+ # define GLOB_FLAGMASK (~0)
+ #endif
+ 
++#ifndef GLOB_TILDE
++#define GLOB_TILDE 0
++#endif
++
++#ifndef GLOB_BRACE
++#define GLOB_BRACE 0
++#endif
++
+ #define PHP_GLOB_FLAGS (0 | GLOB_BRACE | GLOB_MARK  \
+                           | GLOB_NOSORT | GLOB_NOCHECK \
+                           | GLOB_NOESCAPE | GLOB_ERR \
+diff --git hphp/runtime/ext/std/ext_std_math.cpp hphp/runtime/ext/std/ext_std_math.cpp
+index 542a299..66199db 100644
+--- hphp/runtime/ext/std/ext_std_math.cpp
++++ hphp/runtime/ext/std/ext_std_math.cpp
+@@ -398,7 +398,7 @@ int64_t HHVM_FUNCTION(getrandmax) { return RAND_MAX;}
+ 
+ ///////////////////////////////////////////////////////////////////////////////
+ 
+-#ifdef __APPLE__
++#if (defined(__APPLE__)) || (defined(__linux__) && !defined(__GLIBC__))
+ static bool s_rand_is_seeded = false;
+ #else
+ struct RandomBuf {
+@@ -413,7 +413,7 @@ static __thread RandomBuf s_state;
+ #endif
+ 
+ static void randinit(uint32_t seed) {
+-#ifdef __APPLE__
++#if (defined(__APPLE__)) || (defined(__linux__) && !defined(__GLIBC__))
+   s_rand_is_seeded = true;
+   srandom(seed);
+ #else
+@@ -441,7 +441,7 @@ void HHVM_FUNCTION(srand, const Variant& seed /* = null_variant */) {
+ int64_t HHVM_FUNCTION(rand,
+                       int64_t min /* = 0 */,
+                       const Variant& max /* = null_variant */) {
+-#ifdef __APPLE__
++#if (defined(__APPLE__)) || (defined(__linux__) && !defined(__GLIBC__))
+   if (!s_rand_is_seeded) {
+ #else
+   if (s_state.state != RandomBuf::RequestInit) {
+@@ -450,7 +450,7 @@ int64_t HHVM_FUNCTION(rand,
+   }
+ 
+   int64_t number;
+-#ifdef __APPLE__
++#if (defined(__APPLE__)) || (defined(__linux__) && !defined(__GLIBC__))
+   number = random();
+ #else
+   int32_t numberIn;
+@@ -500,7 +500,7 @@ const StaticString s_PHP_ROUND_HALF_ODD("PHP_ROUND_HALF_ODD");
+   Native::registerConstant<KindOfDouble>(makeStaticString("M_"#nm), k_M_##nm)  \
+ 
+ void StandardExtension::requestInit() {
+-#ifndef __APPLE__
++#if (!defined(__APPLE__)) && (defined(__linux__) && defined(__GLIBC__))
+   if (s_state.state == RandomBuf::RequestInit) {
+     s_state.state = RandomBuf::ThreadInit;
+   }
+diff --git hphp/runtime/ext/std/ext_std_math.h hphp/runtime/ext/std/ext_std_math.h
+index 07afb4a..96a9287 100644
+--- hphp/runtime/ext/std/ext_std_math.h
++++ hphp/runtime/ext/std/ext_std_math.h
+@@ -45,6 +45,15 @@
+ #define isnan std::isnan
+ #endif
+ 
++/* double-check isnan and isinf exist */
++#if (!defined(isnan)) || (!defined(isinf))
++#include <cmath>
++#undef isinf
++#undef isnan
++#define isinf std::isinf
++#define isnan std::isnan
++#endif
++
+ namespace HPHP {
+ ///////////////////////////////////////////////////////////////////////////////
+ 
+diff --git hphp/runtime/ext/std/ext_std_network.cpp hphp/runtime/ext/std/ext_std_network.cpp
+index c2ddc54..27b74de 100644
+--- hphp/runtime/ext/std/ext_std_network.cpp
++++ hphp/runtime/ext/std/ext_std_network.cpp
+@@ -41,6 +41,13 @@
+ #include <vector>
+ #endif
+ 
++#if (defined(__linux__) && !defined(__GLIBC__))
++/* musl's res_search is stateless so we can just macro it */
++#define res_nsearch(a,b,c,d,e,f) res_search(b,c,d,e,f)
++#define res_ninit(a) res_init()
++#define res_nclose(a) ((void)0)
++#endif
++
+ // HOST_NAME_MAX is recommended by POSIX, but not required.
+ // FreeBSD and OSX (as of 10.9) are known to not define it.
+ // 255 is generally the safe value to assume and upstream
+diff --git hphp/runtime/ext_zend_compat/php-src/Zend/zend_float.h hphp/runtime/ext_zend_compat/php-src/Zend/zend_float.h
+index 56bdb15..1d1a764 100644
+--- hphp/runtime/ext_zend_compat/php-src/Zend/zend_float.h
++++ hphp/runtime/ext_zend_compat/php-src/Zend/zend_float.h
+@@ -211,7 +211,13 @@ extern ZEND_API void zend_ensure_fpu_mode(TSRMLS_D);
+ #elif defined(HAVE__FPU_SETCW) /* glibc systems */
+ 
+ /* fpu_control.h defines _FPU_[GS]ETCW */
++#if (defined(__linux__) && defined(__GLIBC__))
+ # include <fpu_control.h>
++#else
++#define _FPU_GETCW(cw) __asm__ __volatile__ ("fnstcw %0" : "=m" (*&cw))
++#define _FPU_SETCW(cw) __asm__ __volatile__ ("fldcw %0" : : "m" (*&cw)) 
++typedef unsigned int fpu_control_t __attribute__ ((__mode__ (__HI__)));
++#endif
+ 
+ # define XPFPA_DECLARE \
+             fpu_control_t _xpfpa_fpu_oldcw, _xpfpa_fpu_cw;
+diff --git hphp/runtime/ext_zend_compat/php-src/main/snprintf.cpp hphp/runtime/ext_zend_compat/php-src/main/snprintf.cpp
+index 352c4f8..7ae9b16 100644
+--- hphp/runtime/ext_zend_compat/php-src/main/snprintf.cpp
++++ hphp/runtime/ext_zend_compat/php-src/main/snprintf.cpp
+@@ -40,6 +40,15 @@
+ #define LCONV_DECIMAL_POINT '.'
+ #endif
+ 
++/* double-check isnan and isinf exist */
++#if (!defined(isnan)) || (!defined(isinf))
++#include <cmath>
++#undef isinf
++#undef isnan
++#define isinf std::isinf
++#define isnan std::isnan
++#endif
++
+ #include "hphp/runtime/base/zend-strtod.h"
+ 
+ /*
+diff --git hphp/util/abi-cxx.cpp hphp/util/abi-cxx.cpp
+index eb3efc4..1c3acd6 100644
+--- hphp/util/abi-cxx.cpp
++++ hphp/util/abi-cxx.cpp
+@@ -29,8 +29,10 @@
+ # include <windows.h>
+ # include <dbghelp.h>
+ #else
++#if (defined(__GLIBC__))
+ # include <execinfo.h>
+ #endif
++#endif
+ 
+ #include <folly/Format.h>
+ 
+@@ -84,7 +86,7 @@ std::string getNativeFunctionName(void* codeAddr) {
+   free(symbol);
+ 
+   SymCleanup(process);
+-#else
++#elif defined(__GLIBC__)
+   void* buf[1] = {codeAddr};
+   char** symbols = backtrace_symbols(buf, 1);
+ 
+diff --git hphp/util/locale-portability.h hphp/util/locale-portability.h
+index 575900e..331b61c 100644
+--- hphp/util/locale-portability.h
++++ hphp/util/locale-portability.h
+@@ -29,7 +29,7 @@ typedef _locale_t locale_t;
+ #define LC_TIME_MASK      LC_TIME
+ 
+ inline locale_t _current_locale() { return _get_current_locale(); }
+-#else
++#elif (defined(__GLIBC__))
+ #include <langinfo.h>
+ #include <xlocale.h>
+ #endif
+diff --git hphp/util/mutex.h hphp/util/mutex.h
+index 2160efe..3ce8c57 100644
+--- hphp/util/mutex.h
++++ hphp/util/mutex.h
+@@ -113,7 +113,7 @@ public:
+       pthread_mutexattr_settype(&m_mutexattr, PTHREAD_MUTEX_RECURSIVE);
+     } else {
+ #if (defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINGW__) || \
+-    defined(_MSC_VER))
++    defined(_MSC_VER)) || (defined(__linux__) && !defined(__GLIBC__))
+       pthread_mutexattr_settype(&m_mutexattr, PTHREAD_MUTEX_DEFAULT);
+ #else
+       pthread_mutexattr_settype(&m_mutexattr, PTHREAD_MUTEX_ADAPTIVE_NP);
+diff --git hphp/util/stack-trace.cpp hphp/util/stack-trace.cpp
+index 70e0a49..7019f74 100644
+--- hphp/util/stack-trace.cpp
++++ hphp/util/stack-trace.cpp
+@@ -16,8 +16,10 @@
+ #include "hphp/util/stack-trace.h"
+ 
+ #if (!defined(__CYGWIN__) && !defined(__MINGW__) && !defined(_MSC_VER))
++#if (defined(__GLIBC__))
+ #include <execinfo.h>
+ #endif
++#endif
+ 
+ #ifdef HAVE_LIBBFD
+ #include <bfd.h>
+@@ -133,7 +135,11 @@ StackTrace::StackTrace(const char *hexEncoded) {
+ void StackTrace::create() {
+   void *btpointers[MAXFRAME];
+   int framecount = 0;
++#if (defined(__GLIBC__))
+   framecount = backtrace(btpointers, MAXFRAME);
++#else
++  framecount = 0;
++#endif
+   if (framecount <= 0 || framecount > (signed) MAXFRAME) {
+     m_bt_pointers.clear();
+     return;
+@@ -146,7 +152,11 @@ void StackTrace::create() {
+ 
+ void StackTraceNoHeap::create() {
+   int unsigned framecount = 0;
++#if (defined(__GLIBC__))
+   framecount = backtrace(m_btpointers, MAXFRAME);
++#else
++  framecount = 0;
++#endif
+   if (framecount <= 0 || framecount > MAXFRAME) {
+     m_btpointers_cnt = 0;
+     return;
+diff --git hphp/util/stacktrace-profiler.cpp hphp/util/stacktrace-profiler.cpp
+index 030bc0a..f5ac0f2 100644
+--- hphp/util/stacktrace-profiler.cpp
++++ hphp/util/stacktrace-profiler.cpp
+@@ -17,8 +17,10 @@
+ #include "hphp/util/stacktrace-profiler.h"
+ #include "hphp/util/stack-trace.h"
+ #if (!defined(__CYGWIN__) && !defined(__MINGW__) && !defined(_MSC_VER))
++#if (defined(__GLIBC__))
+ #include <execinfo.h>
+ #endif
++#endif
+ #include <algorithm>
+ 
+ namespace HPHP {
+@@ -62,7 +64,11 @@ StackTraceProfiler::Node* StackTraceProfiler::findCaller(Node* n, void* addr) {
+ 
+ StackTraceSample::StackTraceSample() {
+   if (enable_stacktrace_profiler) {
++#if (defined(__GLIBC__))
+     depth = backtrace(addrs, kMaxDepth);
++#else
++    depth = 0;
++#endif
+   } else {
+     depth = 0;
+   }

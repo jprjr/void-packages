@@ -1,0 +1,315 @@
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/asox_queue.h third-party/mcrouter/src/mcrouter/lib/fbi/asox_queue.h
+index 67ae932..00a8e4c 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/asox_queue.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/asox_queue.h
+@@ -16,6 +16,8 @@
+ 
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ /**
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/asox_semaphore.h third-party/mcrouter/src/mcrouter/lib/fbi/asox_semaphore.h
+index d5ea0a2..db2d275 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/asox_semaphore.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/asox_semaphore.h
+@@ -16,6 +16,8 @@
+ 
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ /**
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/asox_timer.h third-party/mcrouter/src/mcrouter/lib/fbi/asox_timer.h
+index eadb991..e896e08 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/asox_timer.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/asox_timer.h
+@@ -14,6 +14,8 @@
+ 
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ typedef void* asox_timer_t;
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/counting_sem.h third-party/mcrouter/src/mcrouter/lib/fbi/counting_sem.h
+index 391e112..5647354 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/counting_sem.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/counting_sem.h
+@@ -43,6 +43,8 @@
+ 
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ typedef struct counting_sem_s {
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/cwlock.h third-party/mcrouter/src/mcrouter/lib/fbi/cwlock.h
+index c9491b2..ca2e789 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/cwlock.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/cwlock.h
+@@ -12,6 +12,7 @@
+ 
+ #include <stdbool.h>
+ #include <stdint.h>
++#include <sys/cdefs.h>
+ 
+ /**
+  * This file and its matching .c file contain the implementation of a small
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/debug.h third-party/mcrouter/src/mcrouter/lib/fbi/debug.h
+index caaa428..e7aa382 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/debug.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/debug.h
+@@ -19,6 +19,12 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/time.h"
+ 
++#include <sys/cdefs.h>
++
++#ifndef __ASSERT_VOID_CAST
++#define __ASSERT_VOID_CAST (void)
++#endif
++
+ __BEGIN_DECLS
+ 
+ /** Handy format defines for 64-bit ints
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/error.h third-party/mcrouter/src/mcrouter/lib/fbi/error.h
+index 590ce2c..202021d 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/error.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/error.h
+@@ -18,6 +18,8 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/nstring.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/time.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ // Store no more than 1024 of these things to avoid memory bloat in
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/fb_cpu_util.h third-party/mcrouter/src/mcrouter/lib/fbi/fb_cpu_util.h
+index 51f4f2c..4e1c7d9 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/fb_cpu_util.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/fb_cpu_util.h
+@@ -11,6 +11,7 @@
+ #define FBI_FB_CPU_UTIL
+ 
+ #include <stdint.h>
++#include <sys/cdefs.h>
+ 
+ __BEGIN_DECLS
+ 
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/hash.h third-party/mcrouter/src/mcrouter/lib/fbi/hash.h
+index ab7845c..07e2744 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/hash.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/hash.h
+@@ -16,6 +16,8 @@
+ 
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ /**
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/network.h third-party/mcrouter/src/mcrouter/lib/fbi/network.h
+index 4f1790f..d80bce1 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/network.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/network.h
+@@ -13,6 +13,9 @@
+ #include <netinet/in.h>
+ #include <stdbool.h>
+ 
++#include <sys/cdefs.h>
++
++
+ __BEGIN_DECLS
+ 
+ typedef struct {
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/nstring.h third-party/mcrouter/src/mcrouter/lib/fbi/nstring.h
+index e3fb14b..ce75222 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/nstring.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/nstring.h
+@@ -17,6 +17,8 @@
+ 
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ #define NSTRING_LIT(lit) {(char*)lit, sizeof(lit)-1}
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/sfrlock.h third-party/mcrouter/src/mcrouter/lib/fbi/sfrlock.h
+index 6e60be9..0f3d420 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/sfrlock.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/sfrlock.h
+@@ -88,6 +88,8 @@ typedef struct {
+ 
+ #define SFRLOCK_WRITE_LOCKED 0x80000000U
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ void sfrlock_init(sfrlock_t *l);
+ void sfrlock_rdlock_contended(sfrlock_t *l);
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/skiplist.h third-party/mcrouter/src/mcrouter/lib/fbi/skiplist.h
+index c33bb3d..287f66b 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/skiplist.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/skiplist.h
+@@ -14,6 +14,8 @@
+ 
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ #define skiplist_alloc(s) malloc(s)
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/timer.h third-party/mcrouter/src/mcrouter/lib/fbi/timer.h
+index fb8ac46..bc28e5e 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/timer.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/timer.h
+@@ -14,6 +14,8 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/nstring.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/queue.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ typedef enum {
+diff --git third-party/mcrouter/src/mcrouter/lib/fbi/unix.h third-party/mcrouter/src/mcrouter/lib/fbi/unix.h
+index 72eb16c..2eac1a1 100644
+--- third-party/mcrouter/src/mcrouter/lib/fbi/unix.h
++++ third-party/mcrouter/src/mcrouter/lib/fbi/unix.h
+@@ -20,6 +20,8 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/debug.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ static inline int is_root() {
+diff --git third-party/mcrouter/src/mcrouter/lib/mc/_protocol.h third-party/mcrouter/src/mcrouter/lib/mc/_protocol.h
+index 17d7920..0638b71 100644
+--- third-party/mcrouter/src/mcrouter/lib/mc/_protocol.h
++++ third-party/mcrouter/src/mcrouter/lib/mc/_protocol.h
+@@ -13,6 +13,8 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/mc/msg.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ /* maximal ascii request header is:
+diff --git third-party/mcrouter/src/mcrouter/lib/mc/ascii_response.h third-party/mcrouter/src/mcrouter/lib/mc/ascii_response.h
+index 774070e..eeae426 100644
+--- third-party/mcrouter/src/mcrouter/lib/mc/ascii_response.h
++++ third-party/mcrouter/src/mcrouter/lib/mc/ascii_response.h
+@@ -15,6 +15,8 @@
+ //#include "third-party/mcrouter/src/mcrouter/lib/mc/generic.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/mc/msg.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ #define SCRATCH_BUFFER_LEN 96
+diff --git third-party/mcrouter/src/mcrouter/lib/mc/mc_fbtrace_info.h third-party/mcrouter/src/mcrouter/lib/mc/mc_fbtrace_info.h
+index 81bd6d5..a0e060d 100644
+--- third-party/mcrouter/src/mcrouter/lib/mc/mc_fbtrace_info.h
++++ third-party/mcrouter/src/mcrouter/lib/mc/mc_fbtrace_info.h
+@@ -16,6 +16,8 @@
+ 
+ #include "fbtrace/libfbtrace/c/fbtrace.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ typedef struct mc_fbtrace_s {
+diff --git third-party/mcrouter/src/mcrouter/lib/mc/msg.h third-party/mcrouter/src/mcrouter/lib/mc/msg.h
+index 7c14aa0..27f56de 100644
+--- third-party/mcrouter/src/mcrouter/lib/mc/msg.h
++++ third-party/mcrouter/src/mcrouter/lib/mc/msg.h
+@@ -18,6 +18,8 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/nstring.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ #define MSG_NOT_REFCOUNTED -12345
+diff --git third-party/mcrouter/src/mcrouter/lib/mc/parser.h third-party/mcrouter/src/mcrouter/lib/mc/parser.h
+index af3ad59..edb6160 100644
+--- third-party/mcrouter/src/mcrouter/lib/mc/parser.h
++++ third-party/mcrouter/src/mcrouter/lib/mc/parser.h
+@@ -20,6 +20,8 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/mc/umbrella.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/mc/umbrella_protocol.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ /**
+diff --git third-party/mcrouter/src/mcrouter/lib/mc/protocol.h third-party/mcrouter/src/mcrouter/lib/mc/protocol.h
+index 56bde4d..ee3ab3c 100644
+--- third-party/mcrouter/src/mcrouter/lib/mc/protocol.h
++++ third-party/mcrouter/src/mcrouter/lib/mc/protocol.h
+@@ -18,6 +18,8 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/util.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/mc/msg.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ #define MC_KEY_MAX_LEN_ASCII (250)
+diff --git third-party/mcrouter/src/mcrouter/lib/mc/umbrella.h third-party/mcrouter/src/mcrouter/lib/mc/umbrella.h
+index ce38a50..f7385ff 100644
+--- third-party/mcrouter/src/mcrouter/lib/mc/umbrella.h
++++ third-party/mcrouter/src/mcrouter/lib/mc/umbrella.h
+@@ -21,6 +21,8 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/mc/msg.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/mc/umbrella_protocol.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ #define UMBRELLA_VERSION_BASIC 0
+diff --git third-party/mcrouter/src/mcrouter/lib/mc/umbrella_protocol.h third-party/mcrouter/src/mcrouter/lib/mc/umbrella_protocol.h
+index 29aeb70..13b7ccb 100644
+--- third-party/mcrouter/src/mcrouter/lib/mc/umbrella_protocol.h
++++ third-party/mcrouter/src/mcrouter/lib/mc/umbrella_protocol.h
+@@ -16,6 +16,8 @@
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ #include "third-party/mcrouter/src/mcrouter/lib/mc/msg.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ /**
+diff --git third-party/mcrouter/src/mcrouter/lib/mc/util.h third-party/mcrouter/src/mcrouter/lib/mc/util.h
+index df04d68..13cad52 100644
+--- third-party/mcrouter/src/mcrouter/lib/mc/util.h
++++ third-party/mcrouter/src/mcrouter/lib/mc/util.h
+@@ -12,6 +12,8 @@
+ 
+ #include "third-party/mcrouter/src/mcrouter/lib/fbi/decls.h"
+ 
++#include <sys/cdefs.h>
++
+ __BEGIN_DECLS
+ 
+ #define MIN(a,b) ((b) < (a) ? (b) : (a))

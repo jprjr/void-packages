@@ -1,0 +1,34 @@
+diff --git third-party/folly/src/folly/Subprocess.h third-party/folly/src/folly/Subprocess.h
+index 4f97008..9c04ceb 100644
+--- third-party/folly/src/folly/Subprocess.h
++++ third-party/folly/src/folly/Subprocess.h
+@@ -116,6 +116,12 @@
+ #include <folly/Portability.h>
+ #include <folly/Range.h>
+ 
++/* see https://github.com/facebook/folly/issues/310 */
++
++#undef stdin
++#undef stdout
++#undef stderr
++
+ namespace folly {
+ 
+ /**
+@@ -814,4 +820,16 @@ inline Subprocess::Options& Subprocess::Options::operator|=(
+ 
+ }  // namespace folly
+ 
++/* see https://github.com/facebook/folly/issues/310 */
++#ifdef __GLIBC__
++#define stdin stdin
++#define stdout stdout
++#define stderr stderr
++#else
++#define stdin (stdin)
++#define stdout (stdout)
++#define stderr (stderr)
++#endif
++
++
+ #endif /* FOLLY_SUBPROCESS_H_ */

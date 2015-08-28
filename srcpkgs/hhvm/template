@@ -1,0 +1,182 @@
+# Template build file for 'hhvm'
+pkgname=hhvm
+version=3.9.0
+revision=1
+short_desc="A virtual machine designed for executing programs written in Hack and PHP."
+maintainer="John Regan <john@jrjrtech.com>"
+license="PHP"
+homepage="http://hhvm.com"
+
+configure_args="-Wno-dev
+  -DCMAKE_INSTALL_PREFIX=/usr
+  -DCMAKE_INSTALL_SBINDIR=bin
+  -DCMAKE_BUILD_TYPE=Release
+  -DCMAKE_PREFIX_PATH=$wrksrc
+  -DENABLE_MONGO:BOOL=ON
+  -DMYSQL_UNIX_SOCK_ADDR=/run/mysqld/mysqld.sock"
+
+makedepends="boost-devel
+  glog-devel
+  libmysqlclient-devel
+  libmemcached-devel
+  libevent-devel
+  libzip-devel
+  libxslt-devel
+  tbb-devel
+  libmcrypt-devel
+  jemalloc-devel
+  libcurl-devel
+  libvpx-devel
+  libdwarf-devel
+  libedit-devel
+  sqlite-devel
+  libyaml-devel
+  fribidi-devel
+  re2-devel
+  gperftools-devel
+  c-client-devel
+  unixodbc-devel
+  icu-devel
+  libressl-devel
+  oniguruma-devel
+  readline-devel
+  libcap-devel
+  ocaml
+  libjpeg-turbo-devel
+  libpng-devel
+  gmp-devel
+  libmagick-devel
+  libldap-devel
+  elfutils-devel
+  mit-krb5-devel"
+
+hostmakedepends="ragel
+  cmake
+  python
+  pkg-config
+  gperf
+  git
+  perl"
+
+# XXX
+# oniguruma-devel
+  
+nocross="yes"
+
+_thirdparty_commit=5cfbd0ea334de25115546a08a9dbd2954c6f5ed5
+_folly_commit=879db739d6bb0cd6a7035d4606c34c877077c88e
+_thrift_commit=b5635e3675023979c87d8b16182402c1ffba32a4
+_proxygen_commit=885e8444298343ddddbc6948f6bdb7f1d9edc540
+_webscalesql_commit=04456ee8cb3f537537873504b33cdea17e346b12
+_mcrouter_commit=8303e732b94469d213266dc512cece4860875305
+_squangle_commit=2661b7b4ffd2533f1cead7c45d369177d44315ff
+_wangle_commit=6ce19ed9d2a8dd2b68d2b23a180ceb107cb53091
+
+distfiles="https://github.com/facebook/hhvm/archive/HHVM-${version}.tar.gz
+  https://github.com/hhvm/hhvm-third-party/archive/$_thirdparty_commit/hhvm-third-party-$_thirdparty_commit.tar.gz
+  https://github.com/facebook/folly/archive/$_folly_commit/folly-$_folly_commit.tar.gz
+  https://github.com/facebook/fbthrift/archive/$_thrift_commit/thrift-$_thrift_commit.tar.gz
+  https://github.com/facebook/proxygen/archive/$_proxygen_commit/proxygen-$_proxygen_commit.tar.gz
+  https://github.com/webscalesql/webscalesql-5.6/archive/$_webscalesql_commit/webscalesql-$_webscalesql_commit.tar.gz
+  https://github.com/facebook/mcrouter/archive/$_mcrouter_commit/mcrouter-$_mcrouter_commit.tar.gz
+  https://github.com/facebook/squangle/archive/$_squangle_commit/squangle-$_squangle_commit.tar.gz
+  https://github.com/facebook/wangle/archive/$_wangle_commit/wangle-$_wangle_commit.tar.gz"
+
+checksum="a1d0713b19b615e6008f9c35d7e219fb6030559bbb8baa7c44d92730263aa4aa
+  730d60164d5274011cded79ffef1da41f3d667521a6823f7dd91bd912f147406
+  3e76945da52a79efa5ead9ffbcca21b8cdb1df85c1648154a94475ee30cc4afb
+  72aed344806debe232ac3ed6196e6d1dc11f42926d44b31d9c3d962da5c88a37
+  ed8f576d1a0d2cd52f9f24dd0de8ff6fb100cf0ddff0e1d0789f4f10654da676
+  6cb667f5e21d32955fdc359a5c490aa5c3d13490a51a82d66325994e0b031b82
+  e102aa2453337bd5b1c01e41ae7c60e8f472227dfe4674041a67b600c4b567cb
+  5db586f6cb02f4f44089a054276ce2da185fa2de0f4eb85f9fcb0469629fb386
+  8cd4166f06925452f70989ef01e579fc1d3989687ecc02ab449d7210bd8758fd
+  c356010a6d6b976f387bb205a75ea07d5f40593a8010483f2ed0f66f112331bc
+  8b50d1ef9f5f726e6d8d469a8c84d85ad63f8b507b97d258b4d751a0e3e221df
+  59c640602929dac0aa34d06c668ed69361eb4b7b47a77f9aa0badb4d0b61571c
+  3e3093f817706c238fad021483f114fd4ce0b45d84097dcb7870157fc9ec769f
+  5b53bc57965e1c5151d720dc7f63f1b2e8ebd5e758b2ef0be3b74df38ebcbce0
+  3a7d1cfa7fb87365bbfc65975b8a96627c34d5389eb0de9c360f195cb717dfd0
+  8fe2192e3e10d46a77bbe4fda7ed588eecda22fd83d5952c79985f642bf00d68"
+
+wrksrc="hhvm-HHVM-${version}"
+
+
+case "$XBPS_TARGET_MACHINE" in
+	*-musl)
+	  export CFLAGS="-DHAVE_POSIX_FALLOCATE -D_GNU_SOURCE -DFOLLY_HAVE_XSI_STRERROR_R -DTHRIFT_HAVE_XSI_STRERROR_R"
+	  export CXXFLAGS="${CFLAGS}"
+esac
+
+
+post_extract() {
+	cd $wrksrc
+	rm -r third-party
+	mv ${XBPS_BUILDDIR}/hhvm-third-party-$_thirdparty_commit third-party
+
+	rm -r third-party/folly/src
+	rm -r third-party/thrift/src
+	rm -r third-party/proxygen/src
+	rm -r third-party/mcrouter/src
+	rm -r third-party/wangle/src
+	rm -r third-party/squangle/src
+	rm -r third-party/webscalesqlclient/src
+	rm -r third-party/webscalesqlclient/webscalesql-5.6
+
+	mv ${XBPS_BUILDDIR}/folly-$_folly_commit third-party/folly/src
+	mv ${XBPS_BUILDDIR}/fbthrift-$_thrift_commit third-party/thrift/src
+	mv ${XBPS_BUILDDIR}/proxygen-$_proxygen_commit third-party/proxygen/src
+	mv ${XBPS_BUILDDIR}/mcrouter-$_mcrouter_commit third-party/mcrouter/src
+	mv ${XBPS_BUILDDIR}/wangle-$_wangle_commit third-party/wangle/src
+	mv ${XBPS_BUILDDIR}/squangle-$_squangle_commit third-party/squangle/src
+	mv ${XBPS_BUILDDIR}/webscalesql-5.6-$_webscalesql_commit third-party/webscalesqlclient/webscalesql-5.6
+
+	ln -sf webscalesql-5.6 third-party/webscalesqlclient/src
+
+	sed \
+	  -e "s@SOURCE_DIR webscalesql-5.6@SOURCE_DIR ${wrksrc}/third-party/webscalesqlclient/webscalesql-5.6@" \
+	  -i third-party/webscalesqlclient/CMakeLists.txt
+
+	sed \
+	  -e "s@#include <wait.h>@#include <sys/wait.h>@" \
+	  -i third-party/folly/src/folly/Subprocess.h
+}
+
+do_configure() {
+	if [ "$XBPS_TARGET_MACHINE" = "i686" ]; then
+		configure_args+=" -DCMAKE_INSTALL_LIBDIR=lib32"
+	else
+		configure_args+=" -DCMAKE_INSTALL_LIBDIR=lib"
+	fi
+	cmake ${configure_args} .
+}
+
+do_build() {
+	make ${make_jobs}
+}
+
+do_install() {
+	make DESTDIR=$DESTDIR install
+}
+
+
+hhvm-devel_package() {
+	short_desc+=" - development files"
+	depends="${sourcepkg}>=${version}_${revision}"
+	pkg_install() {
+		vmove usr/include
+		vmove usr/lib/hhvm/CMake
+		#vmove usr/lib/*.a
+		#vmove usr/lib/*.so
+		#vmove usr/lib/pkgconfig
+	}
+}
+
+#hhvm-docs_package() {
+#	short_desc+=" - documentation"
+#	noarch="yes"
+#	pkg_install() {
+#		vmove "usr/share/man"
+#	}
+#}
+

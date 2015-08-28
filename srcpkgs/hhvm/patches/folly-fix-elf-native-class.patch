@@ -1,0 +1,16 @@
+diff --git third-party/folly/src/folly/experimental/symbolizer/Elf.h third-party/folly/src/folly/experimental/symbolizer/Elf.h
+index d699b1c..c16c33c 100644
+--- third-party/folly/src/folly/experimental/symbolizer/Elf.h
++++ third-party/folly/src/folly/experimental/symbolizer/Elf.h
+@@ -23,6 +23,11 @@
+ #include <elf.h>
+ #include <link.h>  // For ElfW()
+ 
++#ifndef __GLIBC__
++#include <sys/reg.h>
++#define __ELF_NATIVE_CLASS __WORDSIZE
++#endif
++
+ #include <stdexcept>
+ #include <system_error>
+ 

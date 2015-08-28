@@ -1,0 +1,13 @@
+diff --git third-party/thrift/src/thrift/lib/cpp/Thrift.cpp third-party/thrift/src/thrift/lib/cpp/Thrift.cpp
+index c91eb76..b9de610 100644
+--- third-party/thrift/src/thrift/lib/cpp/Thrift.cpp
++++ third-party/thrift/src/thrift/lib/cpp/Thrift.cpp
+@@ -70,7 +70,7 @@ std::string TOutput::strerror_s(int errno_copy) {
+ #else  // THRIFT_HAVE_STRERROR_R
+ 
+   char b_errbuf[1024] = { '\0' };
+-#ifdef THRIFT_STRERROR_R_CHAR_P
++#if defined(THRIFT_STRERROR_R_CHAR_P) && !defined(THRIFT_HAVE_XSI_STRERROR_R)
+   char *b_error = strerror_r(errno_copy, b_errbuf, sizeof(b_errbuf));
+ #else
+   char *b_error = b_errbuf;
