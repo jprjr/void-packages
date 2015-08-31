@@ -1,0 +1,25 @@
+# Template build file for 'libbind'
+pkgname=libbind
+version=6.0
+revision=1
+build_style=gnu-configure
+configure_args="--prefix=/usr"
+short_desc="DNS functions not provided in musl libc"
+maintainer="John Regan <john@jrjrtech.com>"
+license="ISC"
+homepage="https://www.isc.org/downloads/libbind/"
+distfiles="http://ftp.isc.org/isc/${pkgname}/${version}/${pkgname}-${version}.tar.gz"
+checksum="b98b6aa6e7c403f5a6522ffb68325785a87ea8b13377ada8ba87953a3e8cb29d"
+hostmakedepends="groff"
+
+post_install() {
+	vlicense COPYRIGHT
+}
+
+libbind-docs_package() {
+	short_desc+=" - documentation"
+	noarch="yes"
+	pkg_install() {
+		vmove "usr/share/man"
+	}
+}

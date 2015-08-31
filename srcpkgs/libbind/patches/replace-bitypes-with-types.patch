@@ -1,0 +1,442 @@
+diff --git dst/dst_internal.h dst/dst_internal.h
+index e9bc6fc..f11c5a2 100644
+--- dst/dst_internal.h
++++ dst/dst_internal.h
+@@ -20,7 +20,7 @@
+ #include <limits.h>
+ #include <sys/param.h>
+ #if (!defined(BSD)) || (BSD < 199306)
+-# include <sys/bitypes.h>
++# include <sys/types.h>
+ #else
+ # include <sys/types.h>
+ #endif
+diff --git include/arpa/inet.h include/arpa/inet.h
+index d40ccfc..4c04258 100644
+--- include/arpa/inet.h
++++ include/arpa/inet.h
+@@ -65,7 +65,7 @@
+ 
+ #include <sys/param.h>
+ #if (!defined(BSD)) || (BSD < 199306)
+-# include <sys/bitypes.h>
++# include <sys/types.h>
+ #else
+ # include <sys/types.h>
+ #endif
+diff --git include/arpa/nameser.h include/arpa/nameser.h
+index bf405b3..51457fe 100644
+--- include/arpa/nameser.h
++++ include/arpa/nameser.h
+@@ -61,7 +61,7 @@
+ 
+ #include <sys/param.h>
+ #if (!defined(BSD)) || (BSD < 199306)
+-# include <sys/bitypes.h>
++# include <sys/types.h>
+ #else
+ # include <sys/types.h>
+ #endif
+diff --git include/netdb.h include/netdb.h
+index 35282fd..6b912cc 100644
+--- include/netdb.h
++++ include/netdb.h
+@@ -95,7 +95,7 @@
+ #include <sys/param.h>
+ #include <sys/types.h>
+ #if (!defined(BSD)) || (BSD < 199306)
+-# include <sys/bitypes.h>
++# include <sys/types.h>
+ #endif
+ #include <sys/cdefs.h>
+ #include <sys/socket.h>
+diff --git include/resolv.h include/resolv.h
+index 3267781..c85c6ff 100644
+--- include/resolv.h
++++ include/resolv.h
+@@ -58,7 +58,7 @@
+ 
+ #include <sys/param.h>
+ #if (!defined(BSD)) || (BSD < 199306)
+-# include <sys/bitypes.h>
++# include <sys/types.h>
+ #else
+ # include <sys/types.h>
+ #endif
+diff --git port/aix32/include/Makefile.in port/aix32/include/Makefile.in
+index f194e9f..cc7752a 100644
+--- port/aix32/include/Makefile.in
++++ port/aix32/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h sys/cdefs.h
++HEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/aix4/include/Makefile.in port/aix4/include/Makefile.in
+index f194e9f..cc7752a 100644
+--- port/aix4/include/Makefile.in
++++ port/aix4/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h sys/cdefs.h
++HEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/aix5/include/Makefile.in port/aix5/include/Makefile.in
+index 276d5de..7a9ed8d 100644
+--- port/aix5/include/Makefile.in
++++ port/aix5/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h sys/cdefs.h
++HEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/aux3/include/Makefile.in port/aux3/include/Makefile.in
+index 6585241..5d9a69a 100644
+--- port/aux3/include/Makefile.in
++++ port/aux3/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h sys/cdefs.h
++HEADERS= sys/types.h sys/cdefs.h
+ all:
+ 
+ @BIND9_MAKE_RULES@
+diff --git port/bsdos/include/Makefile.in port/bsdos/include/Makefile.in
+index e82d58d..ba07af6 100644
+--- port/bsdos/include/Makefile.in
++++ port/bsdos/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h
++HEADERS= sys/types.h
+ 
+ all:
+ 
+diff --git port/bsdos2/include/Makefile.in port/bsdos2/include/Makefile.in
+index e82d58d..ba07af6 100644
+--- port/bsdos2/include/Makefile.in
++++ port/bsdos2/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h
++HEADERS= sys/types.h
+ 
+ all:
+ 
+diff --git port/cygwin/include/Makefile.in port/cygwin/include/Makefile.in
+index 38804c1..75aa2c0 100644
+--- port/cygwin/include/Makefile.in
++++ port/cygwin/include/Makefile.in
+@@ -22,7 +22,7 @@ top_srcdir =    @top_srcdir@
+ HEADERS= ansi_realloc.h assert.h paths.h
+ AHEADERS= asm/socket.h
+ NHEADERS= net/route.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h sys/mbuf.h sys/socket.h sys/un.h sys/wait.h
++SHEADERS= sys/types.h sys/cdefs.h sys/mbuf.h sys/socket.h sys/un.h sys/wait.h
+ 
+ all:
+ 
+diff --git port/darwin/include/Makefile.in port/darwin/include/Makefile.in
+index e82d58d..ba07af6 100644
+--- port/darwin/include/Makefile.in
++++ port/darwin/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h
++HEADERS= sys/types.h
+ 
+ all:
+ 
+diff --git port/decunix/include/Makefile.in port/decunix/include/Makefile.in
+index 77edaa7..fc20bee 100644
+--- port/decunix/include/Makefile.in
++++ port/decunix/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h sys/cdefs.h
++HEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/dragonfly/include/Makefile.in port/dragonfly/include/Makefile.in
+index 4b7ffe5..aad8116 100644
+--- port/dragonfly/include/Makefile.in
++++ port/dragonfly/include/Makefile.in
+@@ -18,7 +18,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h
++HEADERS= sys/types.h
+ 
+ all:
+ 
+diff --git port/freebsd/include/Makefile.in port/freebsd/include/Makefile.in
+index e82d58d..ba07af6 100644
+--- port/freebsd/include/Makefile.in
++++ port/freebsd/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h
++HEADERS= sys/types.h
+ 
+ all:
+ 
+diff --git port/hpux/include/Makefile.in port/hpux/include/Makefile.in
+index eba9397..2d44a16 100644
+--- port/hpux/include/Makefile.in
++++ port/hpux/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h
++SHEADERS= sys/types.h sys/cdefs.h
+ all:
+ 
+ @BIND9_MAKE_RULES@
+diff --git port/hpux10/include/Makefile.in port/hpux10/include/Makefile.in
+index 1e2a952..b66794f 100644
+--- port/hpux10/include/Makefile.in
++++ port/hpux10/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h
++SHEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/hpux9/include/Makefile.in port/hpux9/include/Makefile.in
+index 1e2a952..b66794f 100644
+--- port/hpux9/include/Makefile.in
++++ port/hpux9/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h
++SHEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/irix/include/Makefile.in port/irix/include/Makefile.in
+index ad4a788..7828ba2 100644
+--- port/irix/include/Makefile.in
++++ port/irix/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h
++SHEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/lynxos/include/Makefile.in port/lynxos/include/Makefile.in
+index a76cb0c..aad1a7f 100644
+--- port/lynxos/include/Makefile.in
++++ port/lynxos/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= ansi_realloc.h
+-SHEADERS =sys/bitypes.h sys/cdefs.h
++SHEADERS =sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/mpe/include/Makefile.in port/mpe/include/Makefile.in
+index c0bca31..821c786 100644
+--- port/mpe/include/Makefile.in
++++ port/mpe/include/Makefile.in
+@@ -21,7 +21,7 @@ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h utmp.h
+ NHEADERS= net/route.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h sys/file.h sys/mbuf.h sys/param.h \
++SHEADERS= sys/types.h sys/cdefs.h sys/file.h sys/mbuf.h sys/param.h \
+ 	  sys/time.h
+ 
+ all:
+diff --git port/netbsd/include/Makefile.in port/netbsd/include/Makefile.in
+index a3a4701..507d126 100644
+--- port/netbsd/include/Makefile.in
++++ port/netbsd/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h
++HEADERS= sys/types.h
+ 
+ all:
+ 
+diff --git port/next/include/Makefile.in port/next/include/Makefile.in
+index 184f82f..b135b45 100644
+--- port/next/include/Makefile.in
++++ port/next/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h
++SHEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/openbsd/include/Makefile.in port/openbsd/include/Makefile.in
+index 9aea4d3..ac319b6 100644
+--- port/openbsd/include/Makefile.in
++++ port/openbsd/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h
++HEADERS= sys/types.h
+ all:
+ 
+ @BIND9_MAKE_RULES@
+diff --git port/qnx/include/Makefile.in port/qnx/include/Makefile.in
+index 2fd7708..0cc23a9 100644
+--- port/qnx/include/Makefile.in
++++ port/qnx/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= db.h paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h sys/ioctl.h sys/mbuf.h sys/resource.h
++SHEADERS= sys/types.h sys/cdefs.h sys/ioctl.h sys/mbuf.h sys/resource.h
+ 
+ all:
+ 
+diff --git port/rhapsody/include/Makefile.in port/rhapsody/include/Makefile.in
+index a3a4701..507d126 100644
+--- port/rhapsody/include/Makefile.in
++++ port/rhapsody/include/Makefile.in
+@@ -19,7 +19,7 @@ srcdir =        @srcdir@
+ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+-HEADERS= sys/bitypes.h
++HEADERS= sys/types.h
+ 
+ all:
+ 
+diff --git port/sco42/include/Makefile.in port/sco42/include/Makefile.in
+index 5ce28fa..c9ea7d4 100644
+--- port/sco42/include/Makefile.in
++++ port/sco42/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= ansi_realloc.h paths.h sco_gettime.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h sys/mbuf.h sys/un.h
++SHEADERS= sys/types.h sys/cdefs.h sys/mbuf.h sys/un.h
+ 
+ all:
+ 
+diff --git port/solaris/include/Makefile.in port/solaris/include/Makefile.in
+index 184f82f..b135b45 100644
+--- port/solaris/include/Makefile.in
++++ port/solaris/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h
++SHEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/sunos/include/Makefile.in port/sunos/include/Makefile.in
+index e164f90..6d12ad7 100644
+--- port/sunos/include/Makefile.in
++++ port/sunos/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= ansi_realloc.h assert.h paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h sys/wait.h
++SHEADERS= sys/types.h sys/cdefs.h sys/wait.h
+ 
+ all:
+ 
+diff --git port/ultrix/include/Makefile.in port/ultrix/include/Makefile.in
+index 8f3cf7d..2af7f56 100644
+--- port/ultrix/include/Makefile.in
++++ port/ultrix/include/Makefile.in
+@@ -21,7 +21,7 @@ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h
+ READERS= rpc/xdr.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h sys/socket.h sys/syslog.h
++SHEADERS= sys/types.h sys/cdefs.h sys/socket.h sys/syslog.h
+ 
+ all:
+ 
+diff --git port/unixware20/include/Makefile.in port/unixware20/include/Makefile.in
+index 637283d..92c6294 100644
+--- port/unixware20/include/Makefile.in
++++ port/unixware20/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h
++SHEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port/unixware212/include/Makefile.in port/unixware212/include/Makefile.in
+index 637283d..92c6294 100644
+--- port/unixware212/include/Makefile.in
++++ port/unixware212/include/Makefile.in
+@@ -20,7 +20,7 @@ VPATH =         @srcdir@
+ top_srcdir =    @top_srcdir@
+ 
+ HEADERS= paths.h
+-SHEADERS= sys/bitypes.h sys/cdefs.h
++SHEADERS= sys/types.h sys/cdefs.h
+ 
+ all:
+ 
+diff --git port_after.h.in port_after.h.in
+index 0267fbb..e8b013e 100644
+--- port_after.h.in
++++ port_after.h.in
+@@ -26,7 +26,7 @@
+ #include <sys/param.h>
+ #include <sys/time.h>
+ #if (!defined(BSD)) || (BSD < 199306)
+-#include <sys/bitypes.h>
++#include <sys/types.h>
+ #endif
+ #ifdef HAVE_INTTYPES_H
+ #include <inttypes.h>
