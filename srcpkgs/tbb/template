@@ -5,7 +5,6 @@ revision=1
 _lv="${version%.*}"
 _lv="${_lv//.}"
 _rv="${version##*.}"
-only_for_archs="i686 x86_64"
 wrksrc="$pkgname${_lv}_${_rv}oss"
 build_style=gnu-makefile
 short_desc="Intel Threading Building Blocks"
@@ -14,6 +13,16 @@ license="GPL-2"
 homepage="http://www.threadingbuildingblocks.org"
 distfiles="https://www.threadingbuildingblocks.org/sites/default/files/software_releases/source/tbb${_lv}_${_rv}oss_src.tgz"
 checksum=221f85fe64e11c9638e43b3c57d5750c26683905fc90827c0bcfefdb286e79c9
+
+post_extract() {
+	case "$XBPS_TARGET_MACHINE" in
+		*-musl)
+			sed -e "s@#define MALLOC_UNIXLIKE_OVERLOAD_ENABLED __linux__@@" \
+			  -i src/tbbmalloc/proxy.h
+		;;
+	esac
+}
+
 
 do_install() {
 	vmkdir usr/lib
