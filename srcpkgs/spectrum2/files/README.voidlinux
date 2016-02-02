@@ -1,0 +1,14 @@
+How to setup new Spectrum2 transports:
+
+Create a configuration file at /etc/spectrum2/transports/${transport}.cfg
+
+Create a new service directory at /etc/sv/spectrum2-${transport}
+and symlink to the spectrum2-generic run script.
+
+Example: create /etc/spectrum2/transports/aim.cfg, then
+
+	mkdir -p /etc/sv/spectrum2-aim
+	ln -s /etc/sv/spectrum2-generic/run /etc/sv/spectrum2-aim/run
+
+Then enable the service as usual:
+	ln -s /etc/sv/spectrum2-aim /var/service/

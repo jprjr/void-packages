@@ -2397,3 +2397,6 @@ libfbembed.so.2.5 libfbclient-2.5.5.26952_1
 libib_util.so libfbclient-2.5.5.26952_1
 libgds.so.0 libfbclient-2.5.5.26952_1
 libqxmpp.so.0 qxmpp-0.9.3_1
+libtransport.so.2.0 spectrum2-2.0.1_1
+libtransport-plugin.so.2.0 spectrum2-2.0.1_1
+

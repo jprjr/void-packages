@@ -1,0 +1,84 @@
+# Template file for 'spectrum2'
+pkgname=spectrum2
+version=2.0.2
+revision=1
+build_style=cmake
+hostmakedepends="qt5-qmake cmake pkg-config swiften-devel"
+makedepends="libressl-devel icu-devel swiften-devel"
+makedepends+=" libcppunit-devel libpurple-devel boost-devel"
+makedepends+=" protobuf-devel zlib-devel libidn-devel"
+makedepends+=" libxml2-devel popt-devel dbus-glib-devel"
+makedepends+=" sqlite-devel libmariadbclient-devel libpqxx-devel"
+makedepends+=" log4cxx-devel libcurl-devel libev-devel"
+makedepends+=" libevent-devel libcommuni-devel qt5-devel"
+short_desc="XMPP/Slack gateway"
+maintainer="John Regan <john@jrjrtech.com>"
+license="GPL-3"
+homepage="http://spectrum.im/"
+distfiles="https://github.com/hanzz/${pkgname}/archive/${version}.tar.gz"
+checksum=e8c318f5acdb5b369779dff41eb330f956a8939e4f2e5efd8087cb1335a43456
+system_accounts="spectrum2"
+spectrum2_homedir="/var/lib/spectrum2"
+make_dirs="/var/lib/spectrum2 0755 spectrum2 spectrum2"
+conf_files="/etc/spectrum2/*.cfg /etc/spectrum2/transports/*"
+
+# Disabling Skype plugin per
+# https://github.com/hanzz/spectrum2/issues/56
+configure_args="-DENABLE_SKYPE=0"
+
+post_install() {
+	vsv spectrum2-generic
+	vdoc ${FILESDIR}/README.voidlinux
+}
+
+spectrum2-devel_package() {
+	short_desc+=" - development files"
+	depends="${sourcepkg}>=${version}_${revision}"
+	pkg_install() {
+		vmove usr/include
+		vmove usr/lib/*.so
+	}
+}
+
+spectrum2-frotz_package() {
+	short_desc=" - frotz backend"
+	pkg_install() {
+		vmove usr/bin/dfrotz
+		vmove usr/bin/spectrum2_frotz_backend
+	}
+}
+
+spectrum2-smstools3_package() {
+	short_desc=" - SMSTools3 backend"
+	pkg_install() {
+		vmove usr/bin/spectrum2_smstools3_backend
+	}
+}
+
+spectrum2-twitter_package() {
+	short_desc=" - Twitter backend"
+	pkg_install() {
+		vmove usr/bin/spectrum2_twitter_backend
+	}
+}
+
+spectrum2-libpurple_package() {
+	short_desc=" - libpurple backend"
+	pkg_install() {
+		vmove usr/bin/spectrum2_libpurple_backend
+	}
+}
+
+spectrum2-swiften_package() {
+	short_desc=" - Swiften (XMPP) backend"
+	pkg_install() {
+		vmove usr/bin/spectrum2_swiften_backend
+	}
+}
+
+spectrum2-libcommuni_package() {
+	short_desc=" - LibCommuni (IRC) backend"
+	pkg_install() {
+		vmove usr/bin/spectrum2_libcommuni_backend
+	}
+}

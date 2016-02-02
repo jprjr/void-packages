@@ -1,0 +1,62 @@
+diff --git CMakeLists.txt CMakeLists.txt
+index c5d8592..d02defe 100644
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -203,8 +203,8 @@ if(ENABLE_IRC)
+ 	set(Communi_DIR "${CMAKE_SOURCE_DIR}/cmake_modules")
+ 	find_package(Communi)
+ 
+-	INCLUDE(FindQt4)
+-	FIND_PACKAGE(Qt4 COMPONENTS QtCore QtNetwork)
++	find_package(Qt5Core)
++    find_package(Qt5Network)
+ 	# ADD_DEFINITIONS(${SWIFTEN_CFLAGS})
+ 	ADD_DEFINITIONS(-DSUPPORT_LEGACY_CAPS)
+ 	# ADD_DEFINITIONS(-DBOOST_FILESYSTEM_VERSION=2)
+@@ -347,9 +347,10 @@ if (PROTOBUF_FOUND)
+ 	if(IRC_FOUND)
+ 		ADD_DEFINITIONS(-DIRC_SHARED)
+ 		message("IRC plugin        : yes")
+-		include_directories(${QT_QTNETWORK_INCLUDE_DIR})
++		include_directories(${Qt5_QtNetwork_INCLUDE_DIRS})
+ 		include_directories(${IRC_INCLUDE_DIR})
+-		include(${QT_USE_FILE})
++        set(CMAKE_INCLUDE_CURRENT_DIR ON)
++        set(CMAKE_AUTOMOC ON)
+ 	else()
+ 		if(ENABLE_IRC)
+ 			message("IRC plugin        : no (install libCommuni and libprotobuf-dev)")
+diff --git backends/libcommuni/CMakeLists.txt backends/libcommuni/CMakeLists.txt
+index 3334aae..115978f 100644
+--- backends/libcommuni/CMakeLists.txt
++++ backends/libcommuni/CMakeLists.txt
+@@ -1,13 +1,12 @@
+ cmake_minimum_required(VERSION 2.6)
+ FILE(GLOB SRC *.cpp)
+ FILE(GLOB HEADERS *.h)
+-QT4_WRAP_CPP(SRC ${HEADERS} OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED)
+ ADD_EXECUTABLE(spectrum2_libcommuni_backend ${SRC})
+ 
+ if (NOT WIN32)
+-	target_link_libraries(spectrum2_libcommuni_backend ${IRC_LIBRARY} Qt4::QtNetwork Qt4::QtCore transport pthread)
++	target_link_libraries(spectrum2_libcommuni_backend ${IRC_LIBRARY} Qt5::Network Qt5::Core transport pthread)
+ else ()
+-	target_link_libraries(spectrum2_libcommuni_backend ${IRC_LIBRARY} Qt4::QtNetwork Qt4::QtCore transport)
++	target_link_libraries(spectrum2_libcommuni_backend ${IRC_LIBRARY} Qt5::Network Qt5::Core transport)
+ endif()
+ INSTALL(TARGETS spectrum2_libcommuni_backend RUNTIME DESTINATION bin)
+ 
+--- cmake_modules/CommuniConfig.cmake	2016-01-26 01:27:33.000000000 -0600
++++ cmake_modules/CommuniConfig.cmake	2016-02-02 14:16:11.269000000 -0600
+@@ -1,8 +1,7 @@
+-find_package(Qt4)
+-include( ${QT_USE_FILE} )
++find_package(Qt5Core)
+ 
+-FIND_LIBRARY(IRC_LIBRARY NAMES IrcCore PATHS ${QT_LIBRARY_DIR})
+-FIND_PATH(IRC_INCLUDE_DIR NAMES "IrcCore/ircglobal.h" PATHS ${QT_INCLUDE_DIR} PATH_SUFFIXES Communi)
++FIND_LIBRARY(IRC_LIBRARY NAMES IrcCore)
++FIND_PATH(IRC_INCLUDE_DIR NAMES "IrcCore/ircglobal.h" PATHS ${Qt5Core_INCLUDE_DIRS} PATH_SUFFIXES Communi)
+ 
+ # message( STATUS ${IRC_LIBRARY})
+ if( IRC_LIBRARY AND IRC_INCLUDE_DIR )

@@ -1,0 +1,99 @@
+diff --git backends/libpurple/main.cpp backends/libpurple/main.cpp
+index 3821382..1a09d9d 100644
+--- backends/libpurple/main.cpp
++++ backends/libpurple/main.cpp
+@@ -423,11 +423,9 @@ class SpectrumNetworkPlugin : public NetworkPlugin {
+ 				m_accounts.erase(account);
+ 
+ 				purple_accounts_delete_wrapped(account);
+-#ifndef WIN32
+-#if !defined(__FreeBSD__) && !defined(__APPLE__)
++#if defined(__GLIBC__)
+ 				malloc_trim(0);
+ #endif
+-#endif
+ // 				VALGRIND_DO_LEAK_CHECK;
+ 			}
+ 		}
+@@ -1696,12 +1694,10 @@ static PurpleCoreUiOps coreUiOps =
+ static void signed_on(PurpleConnection *gc, gpointer unused) {
+ 	PurpleAccount *account = purple_connection_get_account_wrapped(gc);
+ 	np->handleConnected(np->m_accounts[account]);
+-#ifndef WIN32
+-#if !defined(__FreeBSD__) && !defined(__APPLE__)
++#if defined(__GLIBC__)
+ 	// force returning of memory chunks allocated by libxml2 to kernel
+ 	malloc_trim(0);
+ #endif
+-#endif
+ 	purple_roomlist_get_list_wrapped(gc);
+ 	
+ 	// For prpl-gg
+@@ -1900,7 +1896,7 @@ static void transportDataReceived(gpointer data, gint source, PurpleInputConditi
+ 
+ int main(int argc, char **argv) {
+ #ifndef WIN32
+-#if !defined(__FreeBSD__) && !defined(__APPLE__)
++#if defined(__GLIBC__)
+ 		mallopt(M_CHECK_ACTION, 2);
+ 		mallopt(M_PERTURB, 0xb);
+ #endif
+diff --git backends/swiften/main.cpp backends/swiften/main.cpp
+index 8ccbb2d..3ddfd35 100644
+--- backends/swiften/main.cpp
++++ backends/swiften/main.cpp
+@@ -219,14 +219,10 @@ class SwiftenPlugin : public NetworkPlugin, Swift::XMPPParserClient {
+ 				m_handlers.erase(user);
+ 			}
+ 
+-#ifndef WIN32
+-#ifndef __FreeBSD__
+-#ifndef __MACH__
++#if defined(__GLIBC__)
+ 			// force returning of memory chunks allocated by libxml2 to kernel
+ 			malloc_trim(0);
+ #endif
+-#endif
+-#endif
+ 		}
+ 
+ 		void handleSwiftConnected(const std::string &user) {
+diff --git libtransport/UserManager.cpp libtransport/UserManager.cpp
+index f474601..89a8225 100644
+--- libtransport/UserManager.cpp
++++ libtransport/UserManager.cpp
+@@ -121,13 +121,9 @@ void UserManager::removeUser(User *user, bool onUserBehalf) {
+ 
+ 	onUserDestroyed(user);
+ 	delete user;
+-#ifndef WIN32
+-#ifndef __FreeBSD__
+-#ifndef __MACH__
++#if defined(__GLIBC__)
+ 	malloc_trim(0);
+ #endif
+-#endif
+-#endif
+ // 	VALGRIND_DO_LEAK_CHECK;
+ }
+ 
+diff --git spectrum/src/main.cpp spectrum/src/main.cpp
+index a1a8209..19b9705 100644
+--- spectrum/src/main.cpp
++++ spectrum/src/main.cpp
+@@ -311,14 +311,10 @@ int main(int argc, char **argv)
+ 	std::string exe_file(szFilePath);					
+ #endif	
+ 	setlocale(LC_ALL, "");
+-#ifndef WIN32
+-#ifndef __FreeBSD__
+-#ifndef __MACH__
++#if defined(__GLIBC__)
+ 	mallopt(M_CHECK_ACTION, 2);
+ 	mallopt(M_PERTURB, 0xb);
+ #endif
+-#endif
+-#endif
+ 
+ #ifndef WIN32
+ 	if (signal(SIGINT, spectrum_sigint_handler) == SIG_ERR) {

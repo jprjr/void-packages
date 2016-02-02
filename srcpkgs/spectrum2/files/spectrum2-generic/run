@@ -1,0 +1,10 @@
+#!/bin/sh
+
+mkdir -p /run/spectrum2
+mkdir -p /var/log/spectrum2
+chown spectrum2:spectrum2 /run/spectrum2
+chown spectrum2:spectrum2 /var/log/spectrum2
+
+transport=${PWD##*-}
+
+exec chpst -u spectrum2:spectrum2 spectrum2 --no-daemonize --config "/etc/spectrum2/transports/${transport}.cfg"
