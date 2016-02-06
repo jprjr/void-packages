@@ -1,0 +1,156 @@
+# Template file for 'opensmtpd-queue-null'
+pkgname=opensmtpd-extras
+version=5.7.1
+revision=1
+build_style=gnu-configure
+configure_args="--sysconfdir=/etc/smtpd
+ --libexecdir=/usr/libexec
+ --with-privsep-path=/var/empty
+ --with-sock-dir=/run
+ --with-privsep-user=smtpd
+ --with-queue-user=smtpq
+ --with-filter-clamav
+ --with-filter-dkim-signer
+ --with-filter-dnsbl
+ --with-filter-void
+ --with-filter-spamassassin
+ --with-queue-null
+ --with-table-ldap
+ --with-table-mysql
+ --with-table-postgres
+ --with-table-passwd
+ --with-table-sqlite"
+# remaining filters/tables/queues/etc
+# to be enabled in future revisions
+# I'd love for somebody to contribute! --jprjr
+# --with-filter-lua
+# --with-filter-monkey
+# --with-filter-pause
+# --with-filter-perl
+# --with-filter-python
+# --with-filter-regex
+# --with-filter-trace
+# --with-queue-python
+# --with-queue-ram
+# --with-table-redis
+# --with-table-socketmap
+# --with-table-python
+# --with-scheduler-ram
+# --with-scheduler-python
+hostmakedepends="automake libtool pkg-config"
+makedepends="zlib-devel libressl-devel libevent-devel db-devel libasr-devel"
+makedepends+=" libldap-devel postgresql-libs-devel libmariadbclient-devel sqlite-devel"
+short_desc="OpenSMTPD - null queue extension"
+maintainer="John Regan <john@jrjrtech.com>"
+license="BSD, ISC, MIT"
+homepage="http://www.opensmtpd.org"
+distfiles="http://www.opensmtpd.org/archives/${pkgname}-${version}.tar.gz"
+checksum=b56dc24427afe7d6156c85232427fe33a260aca8873eb118d0229dff3a248dce
+
+
+pre_configure() {
+	touch README AUTHORS NEWS ChangeLog
+	autoreconf -fi
+	# XXX hardcode the libevent major version for now.
+	# XXX the configure test needs to execute a binary to
+	# XXX get this result.
+	sed -e 's,^\(libevent_major_version\)=.*$,\1=2,' -i configure
+}
+
+post_install() {
+	vlicense ${FILESDIR}/LICENSE
+}
+
+opensmtpd-queue-null_package() {
+	short_desc="OpenSMTPD - null queue extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/queue-null
+	}
+}
+
+opensmtpd-filter-clamav_package() {
+	short_desc="OpenSMTPD - ClamAV filter extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/filter-clamav
+		vmove usr/share/man/man8/filter-clamav.8
+	}
+}
+
+opensmtpd-filter-spamassassin_package() {
+	short_desc="OpenSMTPD - SpamAssassin filter extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/filter-spamassassin
+		vmove usr/share/man/man8/filter-spamassassin.8
+	}
+}
+
+opensmtpd-filter-void_package() {
+	short_desc="OpenSMTPD - void filter extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/filter-void
+		vmove usr/share/man/man8/filter-void.8
+	}
+}
+
+opensmtpd-filter-dnsbl_package() {
+	short_desc="OpenSMTPD - dnsbl filter extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/filter-dnsbl
+		vmove usr/share/man/man8/filter-dnsbl.8
+	}
+}
+
+opensmtpd-filter-dkim-signer_package() {
+	short_desc="OpenSMTPD - dkim-signer filter extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/filter-dkim-signer
+	}
+}
+
+opensmtpd-table-postgres_package() {
+	short_desc="OpenSMTPD - Postgres table extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/table-postgres
+	}
+}
+
+opensmtpd-table-mysql_package() {
+	short_desc="OpenSMTPD - MySQL table extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/table-mysql
+	}
+}
+
+opensmtpd-table-sqlite_package() {
+	short_desc="OpenSMTPD - SQLite table extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/table-sqlite
+		vmove usr/share/man/man5/table_sqlite.5
+	}
+}
+
+opensmtpd-table-passwd_package() {
+	short_desc="OpenSMTPD - passwd table extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/table-passwd
+		vmove usr/share/man/man5/table_passwd.5
+	}
+}
+
+opensmtpd-table-ldap_package() {
+	short_desc="OpenSMTPD - LDAP table extension"
+	depends="${pkgname}"
+	pkg_install() {
+		vmove usr/libexec/opensmtpd/table-ldap
+	}
+}

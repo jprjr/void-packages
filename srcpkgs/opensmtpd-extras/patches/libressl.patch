@@ -1,0 +1,15 @@
+diff --git configure.ac configure.ac
+index 0258389..b504d2a 100644
+--- configure.ac
++++ configure.ac
+@@ -444,10 +444,6 @@ fi
+ #l1572 (customized)
+ dnl    Checks for library functions. Please keep in alphabetical order
+ AC_CHECK_FUNCS([ \
+-	arc4random \
+-	arc4random_buf \
+-	arc4random_stir \
+-	arc4random_uniform \
+ 	asprintf \
+ 	bcopy \
+ 	chflags \

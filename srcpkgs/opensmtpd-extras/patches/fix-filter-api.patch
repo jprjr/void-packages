@@ -1,0 +1,11 @@
+diff --git mk/filter.mk mk/filter.mk
+index a7edeba..18e08e1 100644
+--- mk/filter.mk
++++ mk/filter.mk
+@@ -13,5 +13,5 @@ SRCS	+= $(api_srcdir)/ioev.c
+ LIBCOMPAT	= $(top_builddir)/openbsd-compat/libopenbsd-compat.a
+ LDADD		= $(LIBCOMPAT)
+ 
+-CFLAGS=			-DNO_IO -DBUILD_FILTER
++CFLAGS=			-DNO_IO -DBUILD_FILTER -fPIC -DPIC
+ 

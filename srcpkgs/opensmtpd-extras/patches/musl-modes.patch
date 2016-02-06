@@ -1,0 +1,21 @@
+diff --git openbsd-compat/strmode.c openbsd-compat/strmode.c
+index 4a81614..4a34e8a 100644
+--- openbsd-compat/strmode.c
++++ openbsd-compat/strmode.c
+@@ -37,6 +37,16 @@
+ #include <sys/stat.h>
+ #include <string.h>
+ 
++#if !defined(S_ISUID)
++#define    S_ISUID 04000
++#endif
++#if !defined(S_ISGID)
++#define    S_ISGID 02000
++#endif
++#if !defined(S_ISVTX)
++#define S_ISVTX 01000
++#endif
++
+ /* XXX mode should be mode_t */
+ 
+ void

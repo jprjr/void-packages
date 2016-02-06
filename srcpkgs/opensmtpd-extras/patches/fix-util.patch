@@ -1,0 +1,12 @@
+diff --git openbsd-compat/util.h openbsd-compat/util.h
+index ea447f4..ec4f5f4 100644
+--- openbsd-compat/util.h
++++ openbsd-compat/util.h
+@@ -24,6 +24,7 @@
+ 
+ #ifndef _UTIL_H
+ #define _UTIL_H
++#include <stdio.h>
+ 
+ #ifndef HAVE_FPARSELN
+ char * fparseln(FILE *fp, size_t *size, size_t *lineno, const char str[3], int flags);

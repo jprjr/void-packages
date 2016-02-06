@@ -1,0 +1,129 @@
+diff --git extras/wip/filters/Makefile.am extras/wip/filters/Makefile.am
+index 5c20e36..cedc689 100644
+--- extras/wip/filters/Makefile.am
++++ extras/wip/filters/Makefile.am
+@@ -51,3 +51,4 @@ endif
+ if HAVE_FILTER_VOID
+ SUBDIRS	+=	filter-void
+ endif
++
+diff --git extras/wip/filters/filter-clamav/Makefile.am extras/wip/filters/filter-clamav/Makefile.am
+index 25cc712..723b0fd 100644
+--- extras/wip/filters/filter-clamav/Makefile.am
++++ extras/wip/filters/filter-clamav/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = filter-clamav
+ 
+ filter_clamav_SOURCES	 = $(SRCS)
+ filter_clamav_SOURCES	+= filter_clamav.c
++
++man8_MANS = filter-clamav.8
+diff --git extras/wip/filters/filter-dnsbl/Makefile.am extras/wip/filters/filter-dnsbl/Makefile.am
+index f195562..d94084d 100644
+--- extras/wip/filters/filter-dnsbl/Makefile.am
++++ extras/wip/filters/filter-dnsbl/Makefile.am
+@@ -9,3 +9,5 @@ filter_dnsbl_SOURCES	+= $(filters_srcdir)/filter-dnsbl/filter_dnsbl.c
+ if !NO_LIBASR
+ LDADD	 += -lasr
+ endif
++
++man8_MANS = filter-dnsbl.8
+diff --git extras/wip/filters/filter-monkey/Makefile.am extras/wip/filters/filter-monkey/Makefile.am
+index 016c528..48b0a28 100644
+--- extras/wip/filters/filter-monkey/Makefile.am
++++ extras/wip/filters/filter-monkey/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = filter-monkey
+ 
+ filter_monkey_SOURCES	 = $(SRCS)
+ filter_monkey_SOURCES	+= $(filters_srcdir)/filter-monkey/filter_monkey.c
++
++man8_MANS = filter-monkey.8
+diff --git extras/wip/filters/filter-pause/Makefile.am extras/wip/filters/filter-pause/Makefile.am
+index ec1224f..81a906e 100644
+--- extras/wip/filters/filter-pause/Makefile.am
++++ extras/wip/filters/filter-pause/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = filter-pause
+ 
+ filter_pause_SOURCES	 = $(SRCS)
+ filter_pause_SOURCES	+= filter_pause.c
++
++man8_MANS = filter-pause.8
+diff --git extras/wip/filters/filter-regex/Makefile.am extras/wip/filters/filter-regex/Makefile.am
+index f589523..d22fb95 100644
+--- extras/wip/filters/filter-regex/Makefile.am
++++ extras/wip/filters/filter-regex/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = filter-regex
+ 
+ filter_regex_SOURCES	 = $(SRCS)
+ filter_regex_SOURCES	+= $(filters_srcdir)/filter-regex/filter_regex.c
++
++man8_MANS = filter-regex.8
+diff --git extras/wip/filters/filter-spamassassin/Makefile.am extras/wip/filters/filter-spamassassin/Makefile.am
+index b863912..ac21048 100644
+--- extras/wip/filters/filter-spamassassin/Makefile.am
++++ extras/wip/filters/filter-spamassassin/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = filter-spamassassin
+ 
+ filter_spamassassin_SOURCES	 = $(SRCS)
+ filter_spamassassin_SOURCES	+= filter_spamassassin.c
++
++man8_MANS = filter-spamassassin.8
+diff --git extras/wip/filters/filter-stub/Makefile.am extras/wip/filters/filter-stub/Makefile.am
+index f5ebb10..2e0f343 100644
+--- extras/wip/filters/filter-stub/Makefile.am
++++ extras/wip/filters/filter-stub/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = filter-stub
+ 
+ filter_stub_SOURCES	 = $(SRCS)
+ filter_stub_SOURCES	+= $(filters_srcdir)/filter-stub/filter_stub.c
++
++man8_MANS = filter-stub.8
+diff --git extras/wip/filters/filter-trace/Makefile.am extras/wip/filters/filter-trace/Makefile.am
+index 24b8193..702cefe 100644
+--- extras/wip/filters/filter-trace/Makefile.am
++++ extras/wip/filters/filter-trace/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = filter-trace
+ 
+ filter_trace_SOURCES	 = $(SRCS)
+ filter_trace_SOURCES	+= $(filters_srcdir)/filter-trace/filter_trace.c
++
++man8_MANS = filter-trace.8
+diff --git extras/wip/filters/filter-void/Makefile.am extras/wip/filters/filter-void/Makefile.am
+index f4d4ce4..f58f820 100644
+--- extras/wip/filters/filter-void/Makefile.am
++++ extras/wip/filters/filter-void/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = filter-void
+ 
+ filter_void_SOURCES	 = $(SRCS)
+ filter_void_SOURCES	+= $(filters_srcdir)/filter-void/filter_void.c
++
++man8_MANS = filter-void.8
+diff --git extras/wip/tables/table-passwd/Makefile.am extras/wip/tables/table-passwd/Makefile.am
+index 3a7528b..45d910a 100644
+--- extras/wip/tables/table-passwd/Makefile.am
++++ extras/wip/tables/table-passwd/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = table-passwd
+ 
+ table_passwd_SOURCES	 = $(SRCS)
+ table_passwd_SOURCES	+= $(tables_srcdir)/table-passwd/table_passwd.c
++
++man5_MANS = table_passwd.5
+diff --git extras/wip/tables/table-socketmap/Makefile.am extras/wip/tables/table-socketmap/Makefile.am
+index c0223fb..cd865d7 100644
+--- extras/wip/tables/table-socketmap/Makefile.am
++++ extras/wip/tables/table-socketmap/Makefile.am
+@@ -5,3 +5,5 @@ pkglibexec_PROGRAMS	 = table-socketmap
+ 
+ table_socketmap_SOURCES	 = $(SRCS)
+ table_socketmap_SOURCES	+= $(tables_srcdir)/table-socketmap/table_socketmap.c
++
++man5_MANS = table_socketmap.5
+diff --git extras/wip/tables/table-sqlite/Makefile.am extras/wip/tables/table-sqlite/Makefile.am
+index 8d405ee..a6faef1 100644
+--- extras/wip/tables/table-sqlite/Makefile.am
++++ extras/wip/tables/table-sqlite/Makefile.am
+@@ -7,3 +7,5 @@ table_sqlite_SOURCES	 = $(SRCS)
+ table_sqlite_SOURCES	+= $(tables_srcdir)/table-sqlite/table_sqlite.c
+ 
+ LDADD	+= -lsqlite3
++
++man5_MANS = table_sqlite.5
