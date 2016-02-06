@@ -1,0 +1,22 @@
+# Template file for 'gst-plugins'
+
+pkgname="gst-plugins"
+version="1"
+revision="1"
+build_style="meta"
+short_desc="A meta-package to install all GStreamer plugins"
+maintainer="John Regan <john@jrjrtech.com>"
+homepage="http://voidlinux.eu"
+license="none"
+depends="
+gst-ffmpeg
+gst-libav
+gst-omx
+gst-plugins-bad
+gst-plugins-bad1
+gst-plugins-base
+gst-plugins-base1
+gst-plugins-good
+gst-plugins-good1
+gst-plugins-ugly
+gst-plugins-ugly1"
